@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>STAKT — Build Wealth From Nothing</title>
+<meta name="description" content="STAKT is the financial platform for first-generation wealth builders. See how it works.">
+<meta property="og:title" content="STAKT — Build Wealth From Nothing">
+<meta property="og:description" content="The financial platform for first-generation wealth builders. No trust fund required.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#0A0A0A">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body,#root{height:100%;width:100%;overflow:hidden}
+body{background:#0A0A0A;-webkit-font-smoothing:antialiased}
+input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:#2A2522}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;height:22px;width:22px;border-radius:50%;background:#FF8C00;margin-top:-8px;border:2px solid #0A0A0A;box-shadow:0 2px 8px rgba(255,140,0,0.3)}
+input[type=range]::-moz-range-track{height:6px;border-radius:3px;background:#2A2522}
+input[type=range]::-moz-range-thumb{height:22px;width:22px;border-radius:50%;background:#FF8C00;border:2px solid #0A0A0A}
+textarea:focus,input:focus{border-color:#FF8C00 !important}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script type="text/babel">
+const { useState, useEffect, useRef, useMemo } = React;
+
+// Simple localStorage-based feedback storage for standalone deployment
+const feedbackStorage = {
+  save: (data) => {
+    try {
+      const existing = JSON.parse(localStorage.getItem('stakt-feedback') || '[]');
+      existing.push(data);
+      localStorage.setItem('stakt-feedback', JSON.stringify(existing));
+      return true;
+    } catch(e) { console.error(e); return false; }
+  }
+};
+
+
+const SCREENS = {
+  SPLASH: "splash",
+  INTRO_1: "intro_1",
+  INTRO_2: "intro_2",
+  INTRO_3: "intro_3",
+  QUIZ_1: "quiz_1",
+  QUIZ_2: "quiz_2",
+  QUIZ_3: "quiz_3",
+  DASHBOARD: "dashboard",
+  FEATURE_STACK: "feature_stack",
+  FEATURE_CIRCLE: "feature_circle",
+  FEATURE_LEARN: "feature_learn",
+  GAME_JOURNEY: "game_journey",
+  GAME_BADGES: "game_badges",
+  CALC_INPUT: "calc_input",
+  CALC_RESULT: "calc_result",
+  CALC_GENERATIONS: "calc_generations",
+  FEEDBACK: "feedback",
+  THANKS: "thanks",
+};
+
+const FLOW = [
+  SCREENS.SPLASH,
+  SCREENS.INTRO_1,
+  SCREENS.INTRO_2,
+  SCREENS.INTRO_3,
+  SCREENS.QUIZ_1,
+  SCREENS.QUIZ_2,
+  SCREENS.QUIZ_3,
+  SCREENS.DASHBOARD,
+  SCREENS.FEATURE_STACK,
+  SCREENS.FEATURE_CIRCLE,
+  SCREENS.FEATURE_LEARN,
+  SCREENS.GAME_JOURNEY,
+  SCREENS.GAME_BADGES,
+  SCREENS.CALC_INPUT,
+  SCREENS.CALC_RESULT,
+  SCREENS.CALC_GENERATIONS,
+  SCREENS.FEEDBACK,
+  SCREENS.THANKS,
+];
+
+// ─── Colour Palette (Orange & Black) ───
+const C = {
+  bg: "#0A0A0A",
+  card: "#141414",
+  cardHover: "#1C1C1C",
+  accent: "#FF8C00",
+  accentDim: "#E07800",
+  accentGlow: "rgba(255,140,0,0.15)",
+  warm: "#FFB347",
+  warmGlow: "rgba(255,179,71,0.12)",
+  purple: "#FF6B2B",
+  purpleGlow: "rgba(255,107,43,0.12)",
+  text: "#F5F0EB",
+  textSoft: "#A89E94",
+  textMuted: "#6B6360",
+  border: "#2A2522",
+  danger: "#FF4444",
+  dangerGlow: "rgba(255,68,68,0.12)",
+  success: "#FF8C00",
+};
+
+const fontDisplay = `'Outfit', sans-serif`;
+const fontBody = `'DM Sans', sans-serif`;
+
+// ─── Calculator Logic ───
+const calcWealth = (monthly, years, rate) => {
+  const mr = rate / 100 / 12;
+  const months = years * 12;
+  if (mr === 0) return monthly * months;
+  return monthly * ((Math.pow(1 + mr, months) - 1) / mr);
+};
+
+const calcBasicSavings = (monthly, years) => calcWealth(monthly, years, 0.5);
+
+const formatGBP = (v) => {
+  if (v >= 1000000) return `£${(v / 1000000).toFixed(1)}m`;
+  if (v >= 1000) return `£${Math.round(v / 1000).toLocaleString()}k`;
+  return `£${Math.round(v)}`;
+};
+
+const formatGBPFull = (v) =>
+  new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v);
+
+function STAKTPrototype() {
+  const [screen, setScreen] = useState(SCREENS.SPLASH);
+  const [fadeIn, setFadeIn] = useState(true);
+  const [quizAnswers, setQuizAnswers] = useState({});
+  const [feedback, setFeedback] = useState({ rating: 0, excites: [], comment: "", email: "" });
+  const [submitting, setSubmitting] = useState(false);
+  const [calcAge, setCalcAge] = useState(25);
+  const [calcMonthly, setCalcMonthly] = useState(100);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const link = document.createElement("link");
+    link.href = "https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap";
+    link.rel = "stylesheet";
+    document.head.appendChild(link);
+  }, []);
+
+  const retireAge = 65;
+  const calcYears = retireAge - calcAge;
+  const withInvesting = useMemo(() => calcWealth(calcMonthly, calcYears, 7), [calcMonthly, calcYears]);
+  const withoutInvesting = useMemo(() => calcBasicSavings(calcMonthly, calcYears), [calcMonthly, calcYears]);
+  const totalContributed = calcMonthly * 12 * calcYears;
+  const missedGrowth = withInvesting - withoutInvesting;
+
+  const genData = useMemo(() => {
+    const g1 = withInvesting;
+    const g2Start = g1 * 0.3;
+    const g2Own = calcWealth(calcMonthly, 30, 7);
+    const g2 = g2Start * Math.pow(1.07, 30) + g2Own;
+    const g3Start = g2 * 0.3;
+    const g3Own = calcWealth(calcMonthly, 30, 7);
+    const g3 = g3Start * Math.pow(1.07, 30) + g3Own;
+    return { g1, g2, g3 };
+  }, [withInvesting, calcMonthly]);
+
+  const chartData = useMemo(() => {
+    const points = [];
+    for (let age = calcAge; age <= retireAge; age += 5) {
+      const yrs = age - calcAge;
+      points.push({ age, invested: calcWealth(calcMonthly, yrs, 7), saved: calcBasicSavings(calcMonthly, yrs) });
+    }
+    return points;
+  }, [calcAge, calcMonthly]);
+
+  const transition = (next) => {
+    setFadeIn(false);
+    setTimeout(() => {
+      setScreen(next);
+      setFadeIn(true);
+      if (containerRef.current) containerRef.current.scrollTop = 0;
+    }, 280);
+  };
+
+  const next = () => {
+    const i = FLOW.indexOf(screen);
+    if (i < FLOW.length - 1) transition(FLOW[i + 1]);
+  };
+
+  const saveFeedback = async () => {
+    setSubmitting(true);
+    try {
+      const entry = { quizAnswers, calcAge, calcMonthly, withInvesting, withoutInvesting, feedback, timestamp: new Date().toISOString() };
+      const id = `resp_${Date.now()}`;
+      feedbackStorage.save(entry);
+    } catch (e) { console.error("Storage error:", e); }
+    setSubmitting(false);
+    next();
+  };
+
+  // ─── Shared Components ───
+  const Phone = ({ children }) => (
+    <div style={{ width: "100%", maxWidth: 420, margin: "0 auto", minHeight: "100dvh", background: C.bg, position: "relative", fontFamily: fontBody, color: C.text, overflow: "hidden" }}>
+      <div ref={containerRef} style={{ height: "100dvh", overflowY: "auto", overflowX: "hidden", WebkitOverflowScrolling: "touch" }}>
+        <div style={{ opacity: fadeIn ? 1 : 0, transform: fadeIn ? "translateY(0)" : "translateY(12px)", transition: "all 0.28s ease", minHeight: "100dvh", display: "flex", flexDirection: "column" }}>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+
+  const Btn = ({ children, onClick, variant = "primary", disabled = false }) => {
+    const base = { width: "100%", padding: "16px 24px", borderRadius: 14, border: "none", fontFamily: fontDisplay, fontWeight: 600, fontSize: 16, cursor: disabled ? "default" : "pointer", transition: "all 0.2s ease", opacity: disabled ? 0.4 : 1 };
+    const styles = {
+      primary: { ...base, background: C.accent, color: C.bg },
+      secondary: { ...base, background: "transparent", color: C.accent, border: `1.5px solid ${C.border}` },
+    };
+    return <button style={styles[variant]} onClick={disabled ? undefined : onClick}>{children}</button>;
+  };
+
+  const Pill = ({ children, active, onClick }) => (
+    <button onClick={onClick} style={{ padding: "10px 18px", borderRadius: 100, border: `1.5px solid ${active ? C.accent : C.border}`, background: active ? C.accentGlow : "transparent", color: active ? C.accent : C.textSoft, fontFamily: fontBody, fontWeight: 500, fontSize: 14, cursor: "pointer", transition: "all 0.2s ease" }}>{children}</button>
+  );
+
+  const Tag = ({ children, color = C.accent, bg = C.accentGlow }) => (
+    <span style={{ display: "inline-block", padding: "4px 12px", borderRadius: 100, background: bg, color, fontSize: 12, fontWeight: 600, fontFamily: fontDisplay, letterSpacing: "0.04em", textTransform: "uppercase" }}>{children}</span>
+  );
+
+  const GlowBG = ({ color = C.accent, opacity = 0.08, top = "-20%", left = "50%" }) => (
+    <div style={{ position: "absolute", top, left, transform: "translateX(-50%)", width: 400, height: 400, borderRadius: "50%", background: color, opacity, filter: "blur(100px)", pointerEvents: "none" }} />
+  );
+
+  // ─── Mini Bar Chart ───
+  const MiniChart = ({ data, height = 160 }) => {
+    const maxVal = Math.max(...data.map(d => d.invested));
+    return (
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height, padding: "0 4px" }}>
+        {data.map((d, i) => {
+          const investedH = maxVal > 0 ? (d.invested / maxVal) * height * 0.88 : 4;
+          const savedH = maxVal > 0 ? (d.saved / maxVal) * height * 0.88 : 4;
+          return (
+            <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+              <div style={{ display: "flex", alignItems: "flex-end", gap: 2, width: "100%" }}>
+                <div style={{ flex: 1, height: Math.max(investedH, 4), borderRadius: 4, background: `linear-gradient(180deg, ${C.accent}, ${C.accentDim})`, transition: "height 0.6s ease" }} />
+                <div style={{ flex: 1, height: Math.max(savedH, 4), borderRadius: 4, background: C.danger, opacity: 0.45, transition: "height 0.6s ease" }} />
+              </div>
+              <span style={{ fontSize: 9, color: C.textMuted, fontWeight: 600 }}>{d.age}</span>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  // ════════════════════════════════════════
+  //  S C R E E N S
+  // ════════════════════════════════════════
+
+  // ── SPLASH ──
+  if (screen === SCREENS.SPLASH) {
+    return (
+      <Phone>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", padding: 32, position: "relative", textAlign: "center" }}>
+          <GlowBG />
+          <div style={{ width: 80, height: 80, borderRadius: 20, background: `linear-gradient(135deg, ${C.accent}, #FF6B00)`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24, boxShadow: `0 8px 32px ${C.accentGlow}` }}>
+            <span style={{ fontSize: 36, fontFamily: fontDisplay, fontWeight: 900, color: C.bg }}>S</span>
+          </div>
+          <h1 style={{ fontFamily: fontDisplay, fontWeight: 800, fontSize: 42, margin: 0, letterSpacing: "-0.03em", lineHeight: 1.1 }}>STAKT</h1>
+          <p style={{ color: C.textSoft, fontSize: 15, marginTop: 8, lineHeight: 1.5, maxWidth: 260 }}>Build wealth from nothing.<br />No trust fund required.</p>
+          <div style={{ marginTop: 48, width: "100%" }}><Btn onClick={next}>See How It Works</Btn></div>
+          <p style={{ color: C.textMuted, fontSize: 12, marginTop: 16 }}>Interactive concept preview · 5 min</p>
+        </div>
+      </Phone>
+    );
+  }
+
+  // ── INTROS ──
+  const introData = {
+    [SCREENS.INTRO_1]: { emoji: "🧱", title: "Built for builders", body: "STAKT is for people building wealth from the ground up — no family money, no safety net, just ambition and a plan.", highlight: "73% of young people from lower-income families say they have no idea where to start with money." },
+    [SCREENS.INTRO_2]: { emoji: "📊", title: "Stack. Track. Grow.", body: "Set micro-goals. Stack small wins. Watch your money habits compound into something real — even starting from £0.", highlight: "Your progress is always visible, always moving forward." },
+    [SCREENS.INTRO_3]: { emoji: "🤝", title: "Your crew, your journey", body: "Join circles of people on the same path. Share wins, swap strategies, hold each other accountable. No judgement, just progress.", highlight: "Wealth-building doesn't have to be lonely." },
+  };
+
+  if ([SCREENS.INTRO_1, SCREENS.INTRO_2, SCREENS.INTRO_3].includes(screen)) {
+    const d = introData[screen];
+    const idx = [SCREENS.INTRO_1, SCREENS.INTRO_2, SCREENS.INTRO_3].indexOf(screen);
+    return (
+      <Phone>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 28, position: "relative" }}>
+          <GlowBG color={idx === 1 ? C.warm : idx === 2 ? C.purple : C.accent} />
+          <div style={{ display: "flex", gap: 6, marginBottom: 48, marginTop: 16 }}>
+            {[0, 1, 2].map(i => (<div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i <= idx ? C.accent : C.border, transition: "all 0.3s" }} />))}
+          </div>
+          <div style={{ fontSize: 56, marginBottom: 20 }}>{d.emoji}</div>
+          <h2 style={{ fontFamily: fontDisplay, fontWeight: 700, fontSize: 32, margin: 0, lineHeight: 1.15, letterSpacing: "-0.02em" }}>{d.title}</h2>
+          <p style={{ color: C.textSoft, fontSize: 16, lineHeight: 1.65, marginTop: 16 }}>{d.body}</p>
+          <div style={{ marginTop: 24, padding: 16, borderRadius: 12, background: C.accentGlow, borderLeft: `3px solid ${C.accent}` }}>
+            <p style={{ margin: 0, fontSize: 14, color: C.accent, lineHeight: 1.55, fontWeight: 500 }}>{d.highlight}</p>
+          </div>
+          <div style={{ flex: 1 }} />
+          <div style={{ paddingBottom: 20 }}><Btn onClick={next}>Continue</Btn></div>
+        </div>
+      </Phone>
+    );
+  }
+
+  // ── QUIZ ──
+  const quizData = {
+    [SCREENS.QUIZ_1]: { q: "Where are you on your money journey?", key: "stage", options: ["Just getting started", "Got a bit saved", "Building momentum", "Ready to level up"] },
+    [SCREENS.QUIZ_2]: { q: "What's your biggest money challenge right now?", key: "challenge", options: ["Not enough to save", "Don't know where to start", "Staying consistent", "Making it grow"] },
+    [SCREENS.QUIZ_3]: { q: "What would help you most?", key: "need", options: ["Simple daily habits", "A clear plan", "People doing the same", "Seeing real progress"] },
+  };
+
+  if ([SCREENS.QUIZ_1, SCREENS.QUIZ_2, SCREENS.QUIZ_3].includes(screen)) {
+    const d = quizData[screen];
+    const quizScreens = [SCREENS.QUIZ_1, SCREENS.QUIZ_2, SCREENS.QUIZ_3];
+    const idx = quizScreens.indexOf(screen);
+    return (
+      <Phone>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 28, position: "relative" }}>
+          <GlowBG color={C.purple} opacity={0.06} />
+          <div style={{ marginTop: 16 }}><Tag color={C.purple} bg={C.purpleGlow}>Quick Setup</Tag></div>
+          <div style={{ display: "flex", gap: 6, justifyContent: "center", margin: "24px 0 32px" }}>
+            {quizScreens.map((_, i) => (<div key={i} style={{ width: i === idx ? 24 : 8, height: 8, borderRadius: 4, background: i <= idx ? C.accent : C.border, transition: "all 0.3s ease" }} />))}
+          </div>
+          <h2 style={{ fontFamily: fontDisplay, fontWeight: 700, fontSize: 26, margin: 0, lineHeight: 1.2 }}>{d.q}</h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 32 }}>
+            {d.options.map((opt, i) => (
+              <button key={i} onClick={() => setQuizAnswers(prev => ({ ...prev, [d.key]: opt }))} style={{
+                padding: "16px 20px", borderRadius: 14, border: `1.5px solid ${quizAnswers[d.key] === opt ? C.accent : C.border}`,
+                background: quizAnswers[d.key] === opt ? C.accentGlow : C.card, color: quizAnswers[d.key] === opt ? C.accent : C.text,
+                fontFamily: fontBody, fontWeight: 500, fontSize: 15, cursor: "pointer", textAlign: "left", transition: "all 0.2s ease",
+                display: "flex", alignItems: "center", gap: 12,
+              }}>
+                <span style={{ width: 22, height: 22, borderRadius: "50%", border: `2px solid ${quizAnswers[d.key] === opt ? C.accent : C.border}`, background: quizAnswers[d.key] === opt ? C.accent : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.2s" }}>
+                  {quizAnswers[d.key] === opt && <span style={{ color: C.bg, fontSize: 12, fontWeight: 700 }}>✓</span>}
+                </span>
+                {opt}
+              </button>
+            ))}
+          </div>
+          <div style={{ flex: 1 }} />
+          <div style={{ paddingBottom: 20 }}><Btn onClick={next} disabled={!quizAnswers[d.key]}>Next</Btn></div>
+        </div>
+      </Phone>
+    );
+  }
+
+  // ── DASHBOARD ──
+  if (screen === SCREENS.DASHBOARD) {
+    const stackData = [35, 50, 45, 70, 65, 85, 90];
+    const days = ["M", "T", "W", "T", "F", "S", "S"];
+    return (
+      <Phone>
+        <div style={{ padding: 24, position: "relative" }}>
+          <GlowBG color={C.accent} opacity={0.05} top="-30%" />
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 12, marginBottom: 28 }}>
+            <div>
+              <p style={{ margin: 0, color: C.textMuted, fontSize: 13, fontWeight: 500 }}>Welcome back</p>
+              <h2 style={{ fontFamily: fontDisplay, fontWeight: 700, fontSize: 24, margin: 0, marginTop: 2 }}>Your Stack</h2>
+            </div>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: `linear-gradient(135deg, ${C.accent}, #FF6B2B)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>👤</div>
+          </div>
+          <div style={{ padding: 24, borderRadius: 20, background: `linear-gradient(145deg, ${C.card}, #1a1a1a)`, border: `1px solid ${C.border}`, marginBottom: 20, position: "relative", overflow: "hidden" }}>
+            <div style={{ position: "absolute", top: -30, right: -30, width: 120, height: 120, borderRadius: "50%", background: C.accent, opacity: 0.04, filter: "blur(40px)" }} />
+            <p style={{ margin: 0, color: C.textMuted, fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em" }}>Total Stacked</p>
+            <h1 style={{ fontFamily: fontDisplay, fontWeight: 800, fontSize: 40, margin: "8px 0 4px", letterSpacing: "-0.03em" }}>£1,247<span style={{ fontSize: 24, color: C.textSoft }}>.50</span></h1>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ color: C.success, fontSize: 13, fontWeight: 600 }}>↑ 12.4%</span>
+              <span style={{ color: C.textMuted, fontSize: 12 }}>this month</span>
+            </div>
+          </div>
+          <div style={{ padding: 20, borderRadius: 16, background: C.card, border: `1px solid ${C.border}`, marginBottom: 20 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <p style={{ margin: 0, fontWeight: 600, fontSize: 14 }}>Weekly Streak</p>
+              <Tag>5 Days 🔥</Tag>
+            </div>
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 80 }}>
+              {stackData.map((val, i) => (
+                <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                  <div style={{ width: "100%", height: `${val}%`, borderRadius: 6, background: i === 6 ? `linear-gradient(180deg, ${C.accent}, ${C.accentDim})` : C.border, transition: "height 0.5s ease", minHeight: 8 }} />
+                  <span style={{ fontSize: 10, color: i === 6 ? C.accent : C.textMuted, fontWeight: 600 }}>{days[i]}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
+            {[{ emoji: "💰", label: "Stack Now", sub: "Add to your pot" }, { emoji: "🎯", label: "Set Goal", sub: "New target" }, { emoji: "👥", label: "My Circle", sub: "3 active" }, { emoji: "📚", label: "Learn", sub: "Daily lesson" }].map((item, i) => (
+              <div key={i} style={{ padding: 16, borderRadius: 14, background: C.card, border: `1px solid ${C.border}`, cursor: "pointer" }}>
+                <div style={{ fontSize: 24, marginBottom: 8 }}>{item.emoji}</div>
+                <p style={{ margin: 0, fontWeight: 600, fontSize: 14 }}>{item.label}</p>
+                <p style={{ margin: 0, color: C.textMuted, fontSize: 12, marginTop: 2 }}>{item.sub}</p>
+              </div>
+            ))}
+          </div>
+          <div style={{ padding: 16, borderRadius: 14, background: C.warmGlow, border: `1px solid rgba(255,179,71,0.2)`, display: "flex", alignItems: "center", gap: 14, marginBottom: 28 }}>
+            <span style={{ fontSize: 28 }}>🏆</span>
+            <div>
+              <p style={{ margin: 0, fontWeight: 600, fontSize: 14, color: C.warm }}>Next milestone: £1,500</p>
+              <div style={{ marginTop: 6, width: 180, height: 6, borderRadius: 3, background: "rgba(255,179,71,0.15)" }}>
+                <div style={{ width: "83%", height: "100%", borderRadius: 3, background: C.warm }} />
+              </div>
+            </div>
+          </div>
+          <Btn onClick={next}>Explore Features →</Btn>
+          <div style={{ height: 20 }} />
+        </div>
+      </Phone>
+    );
+  }
+
+  // ── FEATURES ──
+  const featureScreens = {
+    [SCREENS.FEATURE_STACK]: { tag: "Core Feature", tagColor: C.accent, tagBg: C.accentGlow, emoji: "📊", title: "Micro-Stacking", subtitle: "Small moves. Big results.", points: [{ icon: "🪙", text: "Round-ups on every purchase — spare change goes straight to your stack" }, { icon: "📱", text: "Daily £1–£5 challenges that build the savings habit painlessly" }, { icon: "📈", text: "Visual compound tracker — see your £5/day become £1,825/year" }], glowColor: C.accent },
+    [SCREENS.FEATURE_CIRCLE]: { tag: "Community", tagColor: C.purple, tagBg: C.purpleGlow, emoji: "👥", title: "Stack Circles", subtitle: "Your accountability crew.", points: [{ icon: "🤝", text: "Join 5-person circles with people on a similar journey" }, { icon: "🏆", text: "Weekly challenges and friendly competition keep you motivated" }, { icon: "🔒", text: "Amounts stay private — it's about habits, not numbers" }], glowColor: C.purple },
+    [SCREENS.FEATURE_LEARN]: { tag: "Education", tagColor: C.warm, tagBg: C.warmGlow, emoji: "🧠", title: "Street Smart Money", subtitle: "No jargon. No lectures.", points: [{ icon: "⚡", text: "2-minute daily lessons designed for real life, not textbooks" }, { icon: "🎮", text: "Interactive scenarios — practice decisions with zero risk" }, { icon: "🗣️", text: "Built by people who built from nothing, for people doing the same" }], glowColor: C.warm },
+  };
+
+  if ([SCREENS.FEATURE_STACK, SCREENS.FEATURE_CIRCLE, SCREENS.FEATURE_LEARN].includes(screen)) {
+    const d = featureScreens[screen];
+    const featureIdx = [SCREENS.FEATURE_STACK, SCREENS.FEATURE_CIRCLE, SCREENS.FEATURE_LEARN].indexOf(screen);
+    return (
+      <Phone>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 28, position: "relative" }}>
+          <GlowBG color={d.glowColor} opacity={0.07} />
+          <div style={{ display: "flex", gap: 6, marginTop: 16, marginBottom: 32 }}>
+            {[0, 1, 2].map(i => (<div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i <= featureIdx ? d.tagColor : C.border, transition: "all 0.3s" }} />))}
+          </div>
+          <Tag color={d.tagColor} bg={d.tagBg}>{d.tag}</Tag>
+          <div style={{ fontSize: 56, marginTop: 20, marginBottom: 12 }}>{d.emoji}</div>
+          <h2 style={{ fontFamily: fontDisplay, fontWeight: 700, fontSize: 30, margin: 0, lineHeight: 1.15 }}>{d.title}</h2>
+          <p style={{ color: C.textSoft, fontSize: 16, marginTop: 8 }}>{d.subtitle}</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 28 }}>
+            {d.points.map((pt, i) => (
+              <div key={i} style={{ display: "flex", gap: 14, padding: 16, borderRadius: 14, background: C.card, border: `1px solid ${C.border}` }}>
+                <span style={{ fontSize: 24, flexShrink: 0 }}>{pt.icon}</span>
+                <p style={{ margin: 0, fontSize: 14, lineHeight: 1.55, color: C.textSoft }}>{pt.text}</p>
+              </div>
+            ))}
+          </div>
+          <div style={{ flex: 1 }} />
+          <div style={{ paddingBottom: 20 }}>
+            <Btn onClick={next}>{featureIdx === 2 ? "See How You Level Up →" : "Next Feature →"}</Btn>
+          </div>
+        </div>
+      </Phone>
+    );
+  }
+
+  // ══════════════════════════════════════
+  //  G A M I F I C A T I O N  S C R E E N S
+  // ══════════════════════════════════════
+
+  // ── YOUR JOURNEY / LEVELS ──
+  if (screen === SCREENS.GAME_JOURNEY) {
+    const levels = [
+      { level: 1, name: "Seed", xp: "0–500 XP", desc: "Open your account, complete first lesson, set your first goal", icon: "🌱", fill: 100, col: "#8B9A6B" },
+      { level: 2, name: "Sprout", xp: "500–2,000 XP", desc: "30-day streak, first £100 stacked, finish Module 1", icon: "🌿", fill: 65, col: "#6BAF6B" },
+      { level: 3, name: "Root", xp: "2,000–5,000 XP", desc: "6-month streak, join a Circle, complete risk profile", icon: "🌳", fill: 35, col: "#4A9F5A" },
+      { level: 4, name: "Branch", xp: "5,000–15,000 XP", desc: "1-year streak, first £1,000 stacked, mentor a new member", icon: "🪵", fill: 15, col: C.warm },
+      { level: 5, name: "Canopy", xp: "15,000+ XP", desc: "Emergency fund built, ISA opened, generational plan started", icon: "🏔️", fill: 5, col: C.accent },
+    ];
+    return (
+      <Phone>
+        <div style={{ padding: 28, position: "relative" }}>
+          <GlowBG color={C.accent} opacity={0.06} />
+          <Tag>Progression</Tag>
+          <h2 style={{ fontFamily: fontDisplay, fontWeight: 700, fontSize: 26, margin: "16px 0 0", lineHeight: 1.15 }}>Your wealth journey<br />has levels</h2>
+          <p style={{ color: C.textSoft, fontSize: 14, lineHeight: 1.55, marginTop: 8 }}>Not quick wins. Not day-trading dopamine. STAKT rewards the things that actually build wealth — <strong style={{ color: C.accent }}>consistency, knowledge, and patience</strong>.</p>
+
+          {/* Simulated player card */}
+          <div style={{ marginTop: 24, padding: 16, borderRadius: 16, background: `linear-gradient(145deg, ${C.card}, #1a1a1a)`, border: `1px solid ${C.border}`, display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ width: 48, height: 48, borderRadius: 14, background: C.accentGlow, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, border: `2px solid ${C.accent}`, flexShrink: 0 }}>🌿</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <p style={{ margin: 0, fontWeight: 600, fontSize: 14 }}>Level 2 · <span style={{ color: "#6BAF6B" }}>Sprout</span></p>
+                <span style={{ fontSize: 12, color: C.accent, fontWeight: 700, fontFamily: fontDisplay }}>1,240 XP</span>
+              </div>
+              <div style={{ marginTop: 6, width: "100%", height: 6, borderRadius: 3, background: C.border }}>
+                <div style={{ width: "62%", height: "100%", borderRadius: 3, background: `linear-gradient(90deg, #6BAF6B, ${C.accent})`, transition: "width 0.8s ease" }} />
+              </div>
+              <p style={{ margin: "4px 0 0", fontSize: 10, color: C.textMuted }}>760 XP to Level 3 · Root</p>
+            </div>
+          </div>
+
+          {/* Level ladder */}
+          <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 8 }}>
+            {levels.map((l, i) => (
+              <div key={i} style={{
+                padding: "12px 14px", borderRadius: 12,
+                background: i <= 1 ? C.card : "transparent",
+                border: `1px solid ${i <= 1 ? C.border : "transparent"}`,
+                opacity: i <= 1 ? 1 : 0.5,
+                display: "flex", alignItems: "center", gap: 12,
+              }}>
+                <span style={{ fontSize: 22, flexShrink: 0 }}>{l.icon}</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <p style={{ margin: 0, fontWeight: 600, fontSize: 13 }}>
+                      <span style={{ color: C.textMuted, marginRight: 6 }}>Lv.{l.level}</span>
+                      <span style={{ color: l.col }}>{l.name}</span>
+                    </p>
+                    <span style={{ fontSize: 10, color: C.textMuted }}>{l.xp}</span>
+                  </div>
+                  <p style={{ margin: "3px 0 0", fontSize: 11, color: C.textMuted, lineHeight: 1.4 }}>{l.desc}</p>
+                </div>
+                {i <= 1 && <span style={{ fontSize: 11, color: i === 0 ? C.accent : C.warm }}>✓</span>}
+              </div>
+            ))}
+          </div>
+
+          <div style={{ marginTop: 16, padding: 14, borderRadius: 12, background: C.accentGlow, borderLeft: `3px solid ${C.accent}` }}>
+            <p style={{ margin: 0, fontSize: 13, color: C.accent, lineHeight: 1.55, fontWeight: 500 }}>Every level is earned through months and years — not minutes. Because real wealth isn't built in a weekend.</p>
+          </div>
+
+          <div style={{ marginTop: 20, paddingBottom: 20 }}><Btn onClick={next}>See The Badges →</Btn></div>
+        </div>
+      </Phone>
+    );
+  }
+
+  // ── BADGES ──
+  if (screen === SCREENS.GAME_BADGES) {
+    const earnedBadges = [
+      { icon: "🔥", name: "7-Day Streak", desc: "Saved every day for a week", earned: true },
+      { icon: "📚", name: "First Lesson", desc: "Completed your first money module", earned: true },
+      { icon: "💯", name: "First £100", desc: "Stacked your first hundred", earned: true },
+    ];
+    const lockedBadges = [
+      { icon: "🏃", name: "90-Day Streak", desc: "3 months of consistent saving" },
+      { icon: "🛡️", name: "Safety Net", desc: "Built a 3-month emergency fund" },
+      { icon: "👥", name: "Circle Keeper", desc: "Stayed active in a Circle for 6 months" },
+      { icon: "📈", name: "ISA Opener", desc: "Opened your first Stocks & Shares ISA" },
+      { icon: "🎓", name: "Money Smart", desc: "Completed all 12 learning modules" },
+      { icon: "🌍", name: "Legacy Starter", desc: "Set up a Junior ISA or generational plan" },
+      { icon: "🏔️", name: "£10k Stacked", desc: "A mountain built one day at a time" },
+      { icon: "🫂", name: "Mentor", desc: "Helped 3 new members find their feet" },
+      { icon: "👑", name: "Generational", desc: "5 years invested. Legacy in motion." },
+    ];
+    const xpActions = [
+      { action: "Daily save (any amount)", xp: "+10 XP" },
+      { action: "Complete a lesson", xp: "+25 XP" },
+      { action: "Hit a savings milestone", xp: "+100 XP" },
+      { action: "Maintain a 30-day streak", xp: "+250 XP" },
+      { action: "Stay invested for 1 year", xp: "+1,000 XP" },
+    ];
+    return (
+      <Phone>
+        <div style={{ padding: 28, position: "relative" }}>
+          <GlowBG color={C.warm} opacity={0.06} />
+          <Tag color={C.warm} bg={C.warmGlow}>Achievements</Tag>
+          <h2 style={{ fontFamily: fontDisplay, fontWeight: 700, fontSize: 26, margin: "16px 0 0", lineHeight: 1.15 }}>Earn badges that<br />mean something</h2>
+          <p style={{ color: C.textSoft, fontSize: 14, lineHeight: 1.55, marginTop: 8 }}>No confetti for clicking "buy". Every badge here represents a real step toward financial freedom.</p>
+
+          {/* Earned */}
+          <p style={{ margin: "20px 0 10px", fontWeight: 600, fontSize: 13, color: C.accent }}>Earned (3)</p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+            {earnedBadges.map((b, i) => (
+              <div key={i} style={{ padding: 12, borderRadius: 14, background: C.card, border: `1px solid ${C.border}`, textAlign: "center" }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: C.accentGlow, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 6px", fontSize: 22, border: `1.5px solid ${C.accent}` }}>{b.icon}</div>
+                <p style={{ margin: 0, fontWeight: 600, fontSize: 11, lineHeight: 1.3 }}>{b.name}</p>
+                <p style={{ margin: "2px 0 0", fontSize: 9, color: C.textMuted, lineHeight: 1.3 }}>{b.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Locked */}
+          <p style={{ margin: "20px 0 10px", fontWeight: 600, fontSize: 13, color: C.textMuted }}>Locked (9)</p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+            {lockedBadges.map((b, i) => (
+              <div key={i} style={{ padding: 12, borderRadius: 14, background: "transparent", border: `1px solid ${C.border}`, textAlign: "center", opacity: 0.45 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: C.border, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 6px", fontSize: 22 }}>🔒</div>
+                <p style={{ margin: 0, fontWeight: 600, fontSize: 11, lineHeight: 1.3 }}>{b.name}</p>
+                <p style={{ margin: "2px 0 0", fontSize: 9, color: C.textMuted, lineHeight: 1.3 }}>{b.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* How XP works */}
+          <div style={{ marginTop: 20, padding: 16, borderRadius: 14, background: C.card, border: `1px solid ${C.border}` }}>
+            <p style={{ margin: "0 0 10px", fontWeight: 600, fontSize: 13 }}>How you earn XP</p>
+            {xpActions.map((a, i) => (
+              <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderTop: i > 0 ? `1px solid ${C.border}` : "none" }}>
+                <span style={{ fontSize: 12, color: C.textSoft }}>{a.action}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: C.accent, fontFamily: fontDisplay }}>{a.xp}</span>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ marginTop: 16, padding: 14, borderRadius: 12, background: C.warmGlow, borderLeft: `3px solid ${C.warm}` }}>
+            <p style={{ margin: 0, fontSize: 13, color: C.warm, lineHeight: 1.55, fontWeight: 500 }}>Notice what's missing? No XP for frequent trading. No rewards for taking big risks. STAKT rewards the habits that compound over a lifetime.</p>
+          </div>
+
+          <div style={{ marginTop: 20, paddingBottom: 20 }}><Btn onClick={next}>Now See Your Reality Check →</Btn></div>
+        </div>
+      </Phone>
+    );
+  }
+
+  // ══════════════════════════════════════
+  //  C A L C U L A T O R  S C R E E N S
+  // ══════════════════════════════════════
+
+  // ── CALC INPUT ──
+  if (screen === SCREENS.CALC_INPUT) {
+    return (
+      <Phone>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 28, position: "relative" }}>
+          <GlowBG color={C.danger} opacity={0.06} />
+          <Tag color={C.danger} bg={C.dangerGlow}>Reality Check</Tag>
+          <h2 style={{ fontFamily: fontDisplay, fontWeight: 700, fontSize: 28, margin: "16px 0 0", lineHeight: 1.15 }}>What are you<br />leaving on the table?</h2>
+          <p style={{ color: C.textSoft, fontSize: 14, lineHeight: 1.55, marginTop: 8 }}>Move the sliders. See the real cost of not investing.</p>
+
+          <div style={{ marginTop: 32 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+              <p style={{ margin: 0, fontWeight: 600, fontSize: 14 }}>Your age</p>
+              <span style={{ fontFamily: fontDisplay, fontWeight: 700, fontSize: 22, color: C.accent }}>{calcAge}</span>
+            </div>
+            <input type="range" min={16} max={50} step={1} value={calcAge} onChange={e => setCalcAge(Number(e.target.value))} style={{ width: "100%", accentColor: C.accent, height: 6 }} />
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
+              <span style={{ fontSize: 11, color: C.textMuted }}>16</span>
+              <span style={{ fontSize: 11, color: C.textMuted }}>50</span>
+            </div>
+          </div>
+
+          <div style={{ marginTop: 28 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+              <p style={{ margin: 0, fontWeight: 600, fontSize: 14 }}>Monthly you could save</p>
+              <span style={{ fontFamily: fontDisplay, fontWeight: 700, fontSize: 22, color: C.accent }}>£{calcMonthly}</span>
+            </div>
+            <input type="range" min={25} max={500} step={25} value={calcMonthly} onChange={e => setCalcMonthly(Number(e.target.value))} style={{ width: "100%", accentColor: C.accent, height: 6 }} />
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
+              <span style={{ fontSize: 11, color: C.textMuted }}>£25</span>
+              <span style={{ fontSize: 11, color: C.textMuted }}>£500</span>
+            </div>
+          </div>
+
+          {/* Live preview */}
+          <div style={{ marginTop: 28, padding: 20, borderRadius: 16, background: C.card, border: `1px solid ${C.border}` }}>
+            <p style={{ margin: 0, color: C.textMuted, fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>By age 65</p>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 12 }}>
+              <div>
+                <p style={{ margin: 0, fontSize: 12, color: C.textSoft }}>If you invest</p>
+                <p style={{ margin: "4px 0 0", fontFamily: fontDisplay, fontWeight: 700, fontSize: 24, color: C.accent }}>{formatGBP(withInvesting)}</p>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <p style={{ margin: 0, fontSize: 12, color: C.textSoft }}>If you don't</p>
+                <p style={{ margin: "4px 0 0", fontFamily: fontDisplay, fontWeight: 700, fontSize: 24, color: C.danger }}>{formatGBP(withoutInvesting)}</p>
+              </div>
+            </div>
+            <div style={{ marginTop: 14, padding: 10, borderRadius: 10, background: C.dangerGlow, textAlign: "center" }}>
+              <p style={{ margin: 0, fontSize: 13, color: C.danger, fontWeight: 600 }}>You'd miss out on {formatGBP(missedGrowth)}</p>
+            </div>
+          </div>
+
+          <div style={{ flex: 1 }} />
+          <div style={{ paddingBottom: 20 }}><Btn onClick={next}>Show Me The Full Picture</Btn></div>
+        </div>
+      </Phone>
+    );
+  }
+
+  // ── CALC RESULT ──
+  if (screen === SCREENS.CALC_RESULT) {
+    return (
+      <Phone>
+        <div style={{ padding: 28, position: "relative" }}>
+          <GlowBG color={C.danger} opacity={0.08} />
+          <Tag color={C.danger} bg={C.dangerGlow}>The Numbers Don't Lie</Tag>
+          <h2 style={{ fontFamily: fontDisplay, fontWeight: 700, fontSize: 24, margin: "16px 0 0", lineHeight: 1.2 }}>£{calcMonthly}/month from age {calcAge}</h2>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 20 }}>
+            <div style={{ padding: 16, borderRadius: 16, background: C.accentGlow, border: `1px solid rgba(255,140,0,0.25)`, textAlign: "center" }}>
+              <p style={{ margin: 0, fontSize: 10, color: C.textSoft, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Invested</p>
+              <p style={{ margin: "6px 0 0", fontFamily: fontDisplay, fontWeight: 800, fontSize: 24, color: C.accent }}>{formatGBP(withInvesting)}</p>
+              <p style={{ margin: "2px 0 0", fontSize: 10, color: C.textSoft }}>at age 65</p>
+            </div>
+            <div style={{ padding: 16, borderRadius: 16, background: C.dangerGlow, border: `1px solid rgba(255,68,68,0.25)`, textAlign: "center" }}>
+              <p style={{ margin: 0, fontSize: 10, color: C.textSoft, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Not invested</p>
+              <p style={{ margin: "6px 0 0", fontFamily: fontDisplay, fontWeight: 800, fontSize: 24, color: C.danger }}>{formatGBP(withoutInvesting)}</p>
+              <p style={{ margin: "2px 0 0", fontSize: 10, color: C.textSoft }}>at age 65</p>
+            </div>
+          </div>
+
+          {/* Chart */}
+          <div style={{ marginTop: 20, padding: 16, borderRadius: 16, background: C.card, border: `1px solid ${C.border}` }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <p style={{ margin: 0, fontWeight: 600, fontSize: 13 }}>Growth Over Time</p>
+              <div style={{ display: "flex", gap: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 4 }}><div style={{ width: 8, height: 8, borderRadius: 2, background: C.accent }} /><span style={{ fontSize: 9, color: C.textMuted }}>Invested</span></div>
+                <div style={{ display: "flex", alignItems: "center", gap: 4 }}><div style={{ width: 8, height: 8, borderRadius: 2, background: C.danger, opacity: 0.5 }} /><span style={{ fontSize: 9, color: C.textMuted }}>Savings</span></div>
+              </div>
+            </div>
+            <MiniChart data={chartData} height={130} />
+          </div>
+
+          {/* Breakdown */}
+          <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ padding: 12, borderRadius: 12, background: C.card, border: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between" }}>
+              <span style={{ fontSize: 13, color: C.textSoft }}>You'd put in</span>
+              <span style={{ fontSize: 13, fontWeight: 700 }}>{formatGBPFull(totalContributed)}</span>
+            </div>
+            <div style={{ padding: 12, borderRadius: 12, background: C.card, border: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between" }}>
+              <span style={{ fontSize: 13, color: C.textSoft }}>Compound growth adds</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: C.accent }}>{formatGBPFull(Math.max(withInvesting - totalContributed, 0))}</span>
+            </div>
+            <div style={{ padding: 12, borderRadius: 12, background: C.dangerGlow, border: `1px solid rgba(255,68,68,0.2)`, display: "flex", justifyContent: "space-between" }}>
+              <span style={{ fontSize: 13, color: C.danger, fontWeight: 600 }}>Cost of doing nothing</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: C.danger }}>{formatGBPFull(missedGrowth)}</span>
+            </div>
+          </div>
+
+          <p style={{ marginTop: 16, fontSize: 11, color: C.textMuted, textAlign: "center", lineHeight: 1.5 }}>Based on 7% avg annual return (stocks & shares) vs 0.5% basic savings. Past performance doesn't guarantee future results.</p>
+
+          <div style={{ marginTop: 16, paddingBottom: 20 }}><Btn onClick={next}>See The Generational Impact →</Btn></div>
+        </div>
+      </Phone>
+    );
+  }
+
+  // ── CALC GENERATIONS ──
+  if (screen === SCREENS.CALC_GENERATIONS) {
+    const gens = [
+      { label: "You", sub: `Starting at ${calcAge}, £${calcMonthly}/mo`, value: genData.g1, emoji: "👤" },
+      { label: "Your Children", sub: "Inherit 30% + invest the same", value: genData.g2, emoji: "👶" },
+      { label: "Grandchildren", sub: "The compound effect snowballs", value: genData.g3, emoji: "👶👶" },
+    ];
+    const maxGen = genData.g3;
+    return (
+      <Phone>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 28, position: "relative" }}>
+          <GlowBG color={C.accent} opacity={0.06} />
+          <Tag>Generational Wealth</Tag>
+          <h2 style={{ fontFamily: fontDisplay, fontWeight: 700, fontSize: 26, margin: "16px 0 0", lineHeight: 1.15 }}>This isn't just<br />about you</h2>
+          <p style={{ color: C.textSoft, fontSize: 14, lineHeight: 1.55, marginTop: 8 }}>What you start today creates a legacy. Each generation builds on the last.</p>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 24 }}>
+            {gens.map((g, i) => {
+              const barW = maxGen > 0 ? Math.max((g.value / maxGen) * 100, 10) : 10;
+              return (
+                <div key={i} style={{ padding: 16, borderRadius: 16, background: C.card, border: `1px solid ${C.border}` }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                    <span style={{ fontSize: 22 }}>{g.emoji}</span>
+                    <div>
+                      <p style={{ margin: 0, fontWeight: 600, fontSize: 14 }}>{g.label}</p>
+                      <p style={{ margin: 0, fontSize: 11, color: C.textMuted }}>{g.sub}</p>
+                    </div>
+                  </div>
+                  <div style={{ width: "100%", height: 28, borderRadius: 8, background: C.border, position: "relative", overflow: "hidden" }}>
+                    <div style={{
+                      width: `${barW}%`, height: "100%", borderRadius: 8,
+                      background: i === 0 ? C.accent : i === 1 ? C.warm : `linear-gradient(90deg, ${C.accent}, ${C.warm})`,
+                      transition: "width 0.8s ease",
+                      display: "flex", alignItems: "center", justifyContent: "flex-end", paddingRight: 8,
+                    }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: C.bg, whiteSpace: "nowrap" }}>{formatGBP(g.value)}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* No investment contrast */}
+          <div style={{ marginTop: 20, padding: 16, borderRadius: 14, background: C.dangerGlow, border: `1px solid rgba(255,68,68,0.2)` }}>
+            <p style={{ margin: 0, fontSize: 13, color: C.danger, fontWeight: 600, marginBottom: 6 }}>Without investing?</p>
+            <p style={{ margin: 0, fontSize: 13, color: C.textSoft, lineHeight: 1.55 }}>Every generation starts from zero. No inheritance. No compound effect. The wealth gap stays exactly where it is.</p>
+          </div>
+
+          <div style={{ marginTop: 16, padding: 16, borderRadius: 14, background: C.accentGlow, borderLeft: `3px solid ${C.accent}` }}>
+            <p style={{ margin: 0, fontSize: 13, color: C.accent, lineHeight: 1.55, fontWeight: 500 }}>
+              Your grandchildren could have <strong>{formatGBP(genData.g3)}</strong>. That's the difference STAKT exists to make.
+            </p>
+          </div>
+
+          <div style={{ flex: 1 }} />
+          <div style={{ paddingBottom: 20 }}><Btn onClick={next}>Give Us Your Thoughts</Btn></div>
+        </div>
+      </Phone>
+    );
+  }
+
+  // ── FEEDBACK ──
+  if (screen === SCREENS.FEEDBACK) {
+    const exciteOptions = ["Micro-Stacking", "Stack Circles", "Daily Lessons", "XP & Levelling System", "Achievement Badges", "Reality Check Calculator", "Generational Wealth View"];
+    return (
+      <Phone>
+        <div style={{ padding: 28, position: "relative" }}>
+          <GlowBG color={C.warm} opacity={0.06} />
+          <Tag color={C.warm} bg={C.warmGlow}>Your Opinion Matters</Tag>
+          <h2 style={{ fontFamily: fontDisplay, fontWeight: 700, fontSize: 28, margin: "16px 0 0", lineHeight: 1.15 }}>What do you think?</h2>
+          <p style={{ color: C.textSoft, fontSize: 14, lineHeight: 1.55 }}>Help shape STAKT — your honest feedback builds a better product.</p>
+
+          <div style={{ marginTop: 24 }}>
+            <p style={{ margin: "0 0 12px", fontWeight: 600, fontSize: 14 }}>How likely would you use STAKT?</p>
+            <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+              {[1, 2, 3, 4, 5].map(n => (
+                <button key={n} onClick={() => setFeedback(f => ({ ...f, rating: n }))} style={{
+                  width: 52, height: 52, borderRadius: 14, border: `2px solid ${feedback.rating >= n ? C.accent : C.border}`,
+                  background: feedback.rating >= n ? C.accentGlow : C.card, color: feedback.rating >= n ? C.accent : C.textMuted,
+                  fontSize: 18, fontWeight: 700, cursor: "pointer", fontFamily: fontDisplay, transition: "all 0.2s",
+                }}>{n}</button>
+              ))}
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
+              <span style={{ fontSize: 11, color: C.textMuted }}>Not likely</span>
+              <span style={{ fontSize: 11, color: C.textMuted }}>Definitely</span>
+            </div>
+          </div>
+
+          <div style={{ marginTop: 28 }}>
+            <p style={{ margin: "0 0 12px", fontWeight: 600, fontSize: 14 }}>What excites you most? <span style={{ fontWeight: 400, color: C.textMuted }}>(pick any)</span></p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {exciteOptions.map(opt => (
+                <Pill key={opt} active={feedback.excites.includes(opt)} onClick={() => {
+                  setFeedback(f => ({ ...f, excites: f.excites.includes(opt) ? f.excites.filter(e => e !== opt) : [...f.excites, opt] }));
+                }}>{opt}</Pill>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ marginTop: 28 }}>
+            <p style={{ margin: "0 0 12px", fontWeight: 600, fontSize: 14 }}>Anything else on your mind?</p>
+            <textarea value={feedback.comment} onChange={e => setFeedback(f => ({ ...f, comment: e.target.value }))} placeholder="What would make STAKT a must-have for you?" style={{
+              width: "100%", minHeight: 80, padding: 14, borderRadius: 14, border: `1.5px solid ${C.border}`,
+              background: C.card, color: C.text, fontFamily: fontBody, fontSize: 14, resize: "vertical", boxSizing: "border-box", outline: "none",
+            }} />
+          </div>
+
+          <div style={{ marginTop: 24 }}>
+            <p style={{ margin: "0 0 12px", fontWeight: 600, fontSize: 14 }}>Want early access? <span style={{ fontWeight: 400, color: C.textMuted }}>(optional)</span></p>
+            <input type="email" value={feedback.email} onChange={e => setFeedback(f => ({ ...f, email: e.target.value }))} placeholder="your@email.com" style={{
+              width: "100%", padding: 14, borderRadius: 14, border: `1.5px solid ${C.border}`,
+              background: C.card, color: C.text, fontFamily: fontBody, fontSize: 14, boxSizing: "border-box", outline: "none",
+            }} />
+          </div>
+
+          <div style={{ marginTop: 32, paddingBottom: 20 }}>
+            <Btn onClick={saveFeedback} disabled={feedback.rating === 0 || submitting}>
+              {submitting ? "Sending..." : "Submit Feedback"}
+            </Btn>
+          </div>
+        </div>
+      </Phone>
+    );
+  }
+
+  // ── THANKS ──
+  if (screen === SCREENS.THANKS) {
+    return (
+      <Phone>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", padding: 32, textAlign: "center", position: "relative" }}>
+          <GlowBG />
+          <div style={{ width: 80, height: 80, borderRadius: "50%", background: C.accentGlow, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24, border: `2px solid ${C.accent}` }}>
+            <span style={{ fontSize: 36 }}>🙏</span>
+          </div>
+          <h2 style={{ fontFamily: fontDisplay, fontWeight: 700, fontSize: 30, margin: 0 }}>Thank you!</h2>
+          <p style={{ color: C.textSoft, fontSize: 15, lineHeight: 1.6, marginTop: 12, maxWidth: 280 }}>Your feedback is shaping something real. If you left your email, we'll be in touch when STAKT is ready.</p>
+          <div style={{ marginTop: 32, padding: 16, borderRadius: 14, background: C.card, border: `1px solid ${C.border}`, width: "100%" }}>
+            <p style={{ margin: 0, fontSize: 14, color: C.textSoft }}>Know someone who'd want this?</p>
+            <p style={{ margin: "8px 0 0", fontSize: 14, fontWeight: 600, color: C.accent }}>Share this link with them ↗</p>
+          </div>
+          <div style={{ marginTop: 40, width: "100%" }}>
+            <Btn variant="secondary" onClick={() => transition(SCREENS.SPLASH)}>Start Over</Btn>
+          </div>
+        </div>
+      </Phone>
+    );
+  }
+
+  return null;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(STAKTPrototype));
+</script>
+</body>
+</html>
