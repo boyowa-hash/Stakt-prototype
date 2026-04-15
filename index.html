@@ -309,7 +309,7 @@ function STAKTPrototype() {
   // ── INTROS ──
   const introData = {
     [SCREENS.INTRO_1]: { emoji: "🧱", title: "Built for builders", body: "STAKT is for people building wealth from the ground up — no family money, no safety net, just ambition and a plan.", highlight: "73% of young people from lower-income families say they have no idea where to start with money." },
-    [SCREENS.INTRO_2]: { emoji: "📊", title: "Stack. Track. Grow.", body: "Set micro-goals. Stack small wins. Watch your money habits compound into something real — even starting from £0.", highlight: "Your progress is always visible, always moving forward." },
+    [SCREENS.INTRO_2]: { emoji: "📊", title: "Stack. Track. Grow.", body: "Set micro-goals. Stack small wins. Watch your money habits compound into something real — starting from as little as £10.", highlight: "Your progress is always visible, always moving forward." },
     [SCREENS.INTRO_3]: { emoji: "🤝", title: "Your crew, your journey", body: "Join circles of people on the same path. Share wins, swap strategies, hold each other accountable. No judgement, just progress.", highlight: "Wealth-building doesn't have to be lonely." },
   };
 
@@ -660,9 +660,9 @@ function STAKTPrototype() {
               <p style={{ margin: 0, fontWeight: 600, fontSize: 14 }}>Monthly you could save</p>
               <span style={{ fontFamily: fontDisplay, fontWeight: 700, fontSize: 22, color: C.accent }}>£{calcMonthly}</span>
             </div>
-            <input type="range" min={25} max={500} step={25} value={calcMonthly} onChange={e => setCalcMonthly(Number(e.target.value))} style={{ width: "100%", accentColor: C.accent, height: 6 }} />
+            <input type="range" min={10} max={500} step={10} value={calcMonthly} onChange={e => setCalcMonthly(Number(e.target.value))} style={{ width: "100%", accentColor: C.accent, height: 6 }} />
             <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
-              <span style={{ fontSize: 11, color: C.textMuted }}>£25</span>
+              <span style={{ fontSize: 11, color: C.textMuted }}>£10</span>
               <span style={{ fontSize: 11, color: C.textMuted }}>£500</span>
             </div>
           </div>
@@ -920,7 +920,7 @@ function App() {
           <div className="stat-row">
             <div className="stat"><div className="stat-num">73%</div><div className="stat-label">of young people don't<br/>know where to start</div></div>
             <div className="stat"><div className="stat-num">9x</div><div className="stat-label">wealth gap between<br/>inherited vs self-built</div></div>
-            <div className="stat"><div className="stat-num">£0</div><div className="stat-label">minimum to<br/>get started</div></div>
+            <div className="stat"><div className="stat-num">£10</div><div className="stat-label">is all you need<br/>to get started</div></div>
           </div>
           <p className="cta-note"><span>&#8592; Try the prototype</span> — it takes about 5 minutes. Your feedback directly shapes what we build. Share the link with anyone who should see this.</p>
         </div>
