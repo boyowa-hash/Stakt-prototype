@@ -56,6 +56,26 @@ textarea:focus,input:focus{border-color:#FF8C00 !important}
 <script type="text/babel">
 const { useState, useEffect, useRef, useMemo } = React;
 
+// ─── MAILCHIMP INTEGRATION ───
+// INSTRUCTIONS: Replace the URL below with your Mailchimp form action URL.
+// To find it: Mailchimp → Audience → Signup forms → Embedded forms → copy the form action URL
+// It looks like: https://XXXXX.usXX.list-manage.com/subscribe/post?u=XXXXXXXXXX&id=XXXXXXXXXX
+const MAILCHIMP_URL = "https://money.us5.list-manage.com/subscribe/post?u=e2124e03a0e42bfe33734a282&id=e2d5904335&f_id=0010f8e9f0";
+
+const subscribeToMailchimp = (email, firstName) => {
+  if (!email || MAILCHIMP_URL.includes("PASTE_YOUR")) return;
+  try {
+    const url = MAILCHIMP_URL.replace("/post?", "/post-json?")
+      + "&EMAIL=" + encodeURIComponent(email)
+      + (firstName ? "&FNAME=" + encodeURIComponent(firstName) : "")
+      + "&c=__mcCb" + Date.now();
+    const s = document.createElement("script");
+    s.src = url;
+    document.body.appendChild(s);
+    setTimeout(() => { try { s.remove(); } catch(e){} }, 5000);
+  } catch(e) { console.error("Mailchimp error:", e); }
+};
+
 // Simple localStorage-based feedback storage for standalone deployment
 const feedbackStorage = {
   save: (data) => {
@@ -216,8 +236,11 @@ function STAKTPrototype() {
     setSubmitting(true);
     try {
       const entry = { quizAnswers, calcAge, calcMonthly, withInvesting, withoutInvesting, feedback, timestamp: new Date().toISOString() };
-      const id = `resp_${Date.now()}`;
       feedbackStorage.save(entry);
+      // Subscribe to Mailchimp if email provided
+      if (feedback.email && feedback.email.includes("@")) {
+        subscribeToMailchimp(feedback.email);
+      }
     } catch (e) { console.error("Storage error:", e); }
     setSubmitting(false);
     next();
