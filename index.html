@@ -185,6 +185,49 @@ const PhoneShell = ({ containerRef, fadeIn, children }) => (
   </div>
 );
 
+// All shared UI components defined outside for stable React references
+const Btn = ({ children, onClick, variant = "primary", disabled = false }) => {
+  const base = { width: "100%", padding: "16px 24px", borderRadius: 14, border: "none", fontFamily: fontDisplay, fontWeight: 600, fontSize: 16, cursor: disabled ? "default" : "pointer", transition: "all 0.2s ease", opacity: disabled ? 0.4 : 1 };
+  const styles = {
+    primary: { ...base, background: C.accent, color: C.bg },
+    secondary: { ...base, background: "transparent", color: C.accent, border: `1.5px solid ${C.border}` },
+  };
+  return <button style={styles[variant]} onClick={disabled ? undefined : onClick}>{children}</button>;
+};
+
+const Pill = ({ children, active, onClick }) => (
+  <button onClick={onClick} style={{ padding: "10px 18px", borderRadius: 100, border: `1.5px solid ${active ? C.accent : C.border}`, background: active ? C.accentGlow : "transparent", color: active ? C.accent : C.textSoft, fontFamily: fontBody, fontWeight: 500, fontSize: 14, cursor: "pointer", transition: "all 0.2s ease" }}>{children}</button>
+);
+
+const Tag = ({ children, color = C.accent, bg = C.accentGlow }) => (
+  <span style={{ display: "inline-block", padding: "4px 12px", borderRadius: 100, background: bg, color, fontSize: 12, fontWeight: 600, fontFamily: fontDisplay, letterSpacing: "0.04em", textTransform: "uppercase" }}>{children}</span>
+);
+
+const GlowBG = ({ color = C.accent, opacity = 0.08, top = "-20%", left = "50%" }) => (
+  <div style={{ position: "absolute", top, left, transform: "translateX(-50%)", width: 400, height: 400, borderRadius: "50%", background: color, opacity, filter: "blur(100px)", pointerEvents: "none" }} />
+);
+
+const MiniChart = ({ data, height = 160 }) => {
+  const maxVal = Math.max(...data.map(d => d.invested));
+  return (
+    <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height, padding: "0 4px" }}>
+      {data.map((d, i) => {
+        const investedH = maxVal > 0 ? (d.invested / maxVal) * height * 0.88 : 4;
+        const savedH = maxVal > 0 ? (d.saved / maxVal) * height * 0.88 : 4;
+        return (
+          <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 2, width: "100%" }}>
+              <div style={{ flex: 1, height: Math.max(investedH, 4), borderRadius: 4, background: `linear-gradient(180deg, ${C.accent}, ${C.accentDim})`, transition: "height 0.6s ease" }} />
+              <div style={{ flex: 1, height: Math.max(savedH, 4), borderRadius: 4, background: C.danger, opacity: 0.45, transition: "height 0.6s ease" }} />
+            </div>
+            <span style={{ fontSize: 9, color: C.textMuted, fontWeight: 600 }}>{d.age}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 function STAKTPrototype() {
   const [screen, setScreen] = useState(SCREENS.SPLASH);
   const [fadeIn, setFadeIn] = useState(true);
@@ -255,51 +298,6 @@ function STAKTPrototype() {
     } catch (e) { console.error("Storage error:", e); }
     setSubmitting(false);
     next();
-  };
-
-  // ─── Shared Components ───
-
-  const Btn = ({ children, onClick, variant = "primary", disabled = false }) => {
-    const base = { width: "100%", padding: "16px 24px", borderRadius: 14, border: "none", fontFamily: fontDisplay, fontWeight: 600, fontSize: 16, cursor: disabled ? "default" : "pointer", transition: "all 0.2s ease", opacity: disabled ? 0.4 : 1 };
-    const styles = {
-      primary: { ...base, background: C.accent, color: C.bg },
-      secondary: { ...base, background: "transparent", color: C.accent, border: `1.5px solid ${C.border}` },
-    };
-    return <button style={styles[variant]} onClick={disabled ? undefined : onClick}>{children}</button>;
-  };
-
-  const Pill = ({ children, active, onClick }) => (
-    <button onClick={onClick} style={{ padding: "10px 18px", borderRadius: 100, border: `1.5px solid ${active ? C.accent : C.border}`, background: active ? C.accentGlow : "transparent", color: active ? C.accent : C.textSoft, fontFamily: fontBody, fontWeight: 500, fontSize: 14, cursor: "pointer", transition: "all 0.2s ease" }}>{children}</button>
-  );
-
-  const Tag = ({ children, color = C.accent, bg = C.accentGlow }) => (
-    <span style={{ display: "inline-block", padding: "4px 12px", borderRadius: 100, background: bg, color, fontSize: 12, fontWeight: 600, fontFamily: fontDisplay, letterSpacing: "0.04em", textTransform: "uppercase" }}>{children}</span>
-  );
-
-  const GlowBG = ({ color = C.accent, opacity = 0.08, top = "-20%", left = "50%" }) => (
-    <div style={{ position: "absolute", top, left, transform: "translateX(-50%)", width: 400, height: 400, borderRadius: "50%", background: color, opacity, filter: "blur(100px)", pointerEvents: "none" }} />
-  );
-
-  // ─── Mini Bar Chart ───
-  const MiniChart = ({ data, height = 160 }) => {
-    const maxVal = Math.max(...data.map(d => d.invested));
-    return (
-      <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height, padding: "0 4px" }}>
-        {data.map((d, i) => {
-          const investedH = maxVal > 0 ? (d.invested / maxVal) * height * 0.88 : 4;
-          const savedH = maxVal > 0 ? (d.saved / maxVal) * height * 0.88 : 4;
-          return (
-            <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-              <div style={{ display: "flex", alignItems: "flex-end", gap: 2, width: "100%" }}>
-                <div style={{ flex: 1, height: Math.max(investedH, 4), borderRadius: 4, background: `linear-gradient(180deg, ${C.accent}, ${C.accentDim})`, transition: "height 0.6s ease" }} />
-                <div style={{ flex: 1, height: Math.max(savedH, 4), borderRadius: 4, background: C.danger, opacity: 0.45, transition: "height 0.6s ease" }} />
-              </div>
-              <span style={{ fontSize: 9, color: C.textMuted, fontWeight: 600 }}>{d.age}</span>
-            </div>
-          );
-        })}
-      </div>
-    );
   };
 
   // ════════════════════════════════════════
