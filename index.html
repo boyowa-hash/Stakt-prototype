@@ -174,6 +174,17 @@ const formatGBP = (v) => {
 const formatGBPFull = (v) =>
   new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v);
 
+// Stable phone wrapper - defined OUTSIDE the component so React keeps it mounted
+const PhoneShell = ({ containerRef, fadeIn, children }) => (
+  <div style={{ width: "100%", height: "100%", background: C.bg, position: "relative", fontFamily: fontBody, color: C.text, overflow: "hidden" }}>
+    <div ref={containerRef} style={{ height: "100%", overflowY: "auto", overflowX: "hidden", WebkitOverflowScrolling: "touch" }}>
+      <div style={{ opacity: fadeIn ? 1 : 0, transform: fadeIn ? "translateY(0)" : "translateY(12px)", transition: "all 0.28s ease", minHeight: "100%", display: "flex", flexDirection: "column" }}>
+        {children}
+      </div>
+    </div>
+  </div>
+);
+
 function STAKTPrototype() {
   const [screen, setScreen] = useState(SCREENS.SPLASH);
   const [fadeIn, setFadeIn] = useState(true);
@@ -247,22 +258,6 @@ function STAKTPrototype() {
   };
 
   // ─── Shared Components ───
-  const PhoneInner = ({ children }) => (
-    <div style={{ width: "100%", height: "100%", background: C.bg, position: "relative", fontFamily: fontBody, color: C.text, overflow: "hidden" }}>
-      <div ref={containerRef} style={{ height: "100%", overflowY: "auto", overflowX: "hidden", WebkitOverflowScrolling: "touch" }}>
-        <div style={{ opacity: fadeIn ? 1 : 0, transform: fadeIn ? "translateY(0)" : "translateY(12px)", transition: "all 0.28s ease", minHeight: "100%", display: "flex", flexDirection: "column" }}>
-          {children}
-        </div>
-      </div>
-    </div>
-  );
-
-  const Phone = ({ children }) => (
-    <>
-      {/* Desktop: just the inner content, shell is outside */}
-      <PhoneInner>{children}</PhoneInner>
-    </>
-  );
 
   const Btn = ({ children, onClick, variant = "primary", disabled = false }) => {
     const base = { width: "100%", padding: "16px 24px", borderRadius: 14, border: "none", fontFamily: fontDisplay, fontWeight: 600, fontSize: 16, cursor: disabled ? "default" : "pointer", transition: "all 0.2s ease", opacity: disabled ? 0.4 : 1 };
@@ -314,7 +309,7 @@ function STAKTPrototype() {
   // ── SPLASH ──
   if (screen === SCREENS.SPLASH) {
     return (
-      <Phone>
+      <PhoneShell containerRef={containerRef} fadeIn={fadeIn}>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", padding: 32, position: "relative", textAlign: "center" }}>
           <GlowBG />
           <div style={{ width: 80, height: 80, borderRadius: 20, background: `linear-gradient(135deg, ${C.accent}, #FF6B00)`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24, boxShadow: `0 8px 32px ${C.accentGlow}` }}>
@@ -325,7 +320,7 @@ function STAKTPrototype() {
           <div style={{ marginTop: 48, width: "100%" }}><Btn onClick={next}>See How It Works</Btn></div>
           <p style={{ color: C.textMuted, fontSize: 12, marginTop: 16 }}>Interactive concept preview · 5 min</p>
         </div>
-      </Phone>
+      </PhoneShell>
     );
   }
 
@@ -340,7 +335,7 @@ function STAKTPrototype() {
     const d = introData[screen];
     const idx = [SCREENS.INTRO_1, SCREENS.INTRO_2, SCREENS.INTRO_3].indexOf(screen);
     return (
-      <Phone>
+      <PhoneShell containerRef={containerRef} fadeIn={fadeIn}>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 28, position: "relative" }}>
           <GlowBG color={idx === 1 ? C.warm : idx === 2 ? C.purple : C.accent} />
           <div style={{ display: "flex", gap: 6, marginBottom: 48, marginTop: 16 }}>
@@ -355,7 +350,7 @@ function STAKTPrototype() {
           <div style={{ flex: 1 }} />
           <div style={{ paddingBottom: 20 }}><Btn onClick={next}>Continue</Btn></div>
         </div>
-      </Phone>
+      </PhoneShell>
     );
   }
 
@@ -371,7 +366,7 @@ function STAKTPrototype() {
     const quizScreens = [SCREENS.QUIZ_1, SCREENS.QUIZ_2, SCREENS.QUIZ_3];
     const idx = quizScreens.indexOf(screen);
     return (
-      <Phone>
+      <PhoneShell containerRef={containerRef} fadeIn={fadeIn}>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 28, position: "relative" }}>
           <GlowBG color={C.purple} opacity={0.06} />
           <div style={{ marginTop: 16 }}><Tag color={C.purple} bg={C.purpleGlow}>Quick Setup</Tag></div>
@@ -397,7 +392,7 @@ function STAKTPrototype() {
           <div style={{ flex: 1 }} />
           <div style={{ paddingBottom: 20 }}><Btn onClick={next} disabled={!quizAnswers[d.key]}>Next</Btn></div>
         </div>
-      </Phone>
+      </PhoneShell>
     );
   }
 
@@ -406,7 +401,7 @@ function STAKTPrototype() {
     const stackData = [35, 50, 45, 70, 65, 85, 90];
     const days = ["M", "T", "W", "T", "F", "S", "S"];
     return (
-      <Phone>
+      <PhoneShell containerRef={containerRef} fadeIn={fadeIn}>
         <div style={{ padding: 24, position: "relative" }}>
           <GlowBG color={C.accent} opacity={0.05} top="-30%" />
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 12, marginBottom: 28 }}>
@@ -460,7 +455,7 @@ function STAKTPrototype() {
           <Btn onClick={next}>Explore Features →</Btn>
           <div style={{ height: 20 }} />
         </div>
-      </Phone>
+      </PhoneShell>
     );
   }
 
@@ -475,7 +470,7 @@ function STAKTPrototype() {
     const d = featureScreens[screen];
     const featureIdx = [SCREENS.FEATURE_STACK, SCREENS.FEATURE_CIRCLE, SCREENS.FEATURE_LEARN].indexOf(screen);
     return (
-      <Phone>
+      <PhoneShell containerRef={containerRef} fadeIn={fadeIn}>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 28, position: "relative" }}>
           <GlowBG color={d.glowColor} opacity={0.07} />
           <div style={{ display: "flex", gap: 6, marginTop: 16, marginBottom: 32 }}>
@@ -498,7 +493,7 @@ function STAKTPrototype() {
             <Btn onClick={next}>{featureIdx === 2 ? "See How You Level Up →" : "Next Feature →"}</Btn>
           </div>
         </div>
-      </Phone>
+      </PhoneShell>
     );
   }
 
@@ -516,7 +511,7 @@ function STAKTPrototype() {
       { level: 5, name: "Canopy", xp: "15,000+ XP", desc: "Emergency fund built, ISA opened, generational plan started", icon: "🏔️", fill: 5, col: C.accent },
     ];
     return (
-      <Phone>
+      <PhoneShell containerRef={containerRef} fadeIn={fadeIn}>
         <div style={{ padding: 28, position: "relative" }}>
           <GlowBG color={C.accent} opacity={0.06} />
           <Tag>Progression</Tag>
@@ -570,7 +565,7 @@ function STAKTPrototype() {
 
           <div style={{ marginTop: 20, paddingBottom: 20 }}><Btn onClick={next}>See The Badges →</Btn></div>
         </div>
-      </Phone>
+      </PhoneShell>
     );
   }
 
@@ -600,7 +595,7 @@ function STAKTPrototype() {
       { action: "Stay invested for 1 year", xp: "+1,000 XP" },
     ];
     return (
-      <Phone>
+      <PhoneShell containerRef={containerRef} fadeIn={fadeIn}>
         <div style={{ padding: 28, position: "relative" }}>
           <GlowBG color={C.warm} opacity={0.06} />
           <Tag color={C.warm} bg={C.warmGlow}>Achievements</Tag>
@@ -648,7 +643,7 @@ function STAKTPrototype() {
 
           <div style={{ marginTop: 20, paddingBottom: 20 }}><Btn onClick={next}>Now See Your Reality Check →</Btn></div>
         </div>
-      </Phone>
+      </PhoneShell>
     );
   }
 
@@ -659,7 +654,7 @@ function STAKTPrototype() {
   // ── CALC INPUT ──
   if (screen === SCREENS.CALC_INPUT) {
     return (
-      <Phone>
+      <PhoneShell containerRef={containerRef} fadeIn={fadeIn}>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 28, position: "relative" }}>
           <GlowBG color={C.danger} opacity={0.06} />
           <Tag color={C.danger} bg={C.dangerGlow}>Reality Check</Tag>
@@ -711,14 +706,14 @@ function STAKTPrototype() {
           <div style={{ flex: 1 }} />
           <div style={{ paddingBottom: 20 }}><Btn onClick={next}>Show Me The Full Picture</Btn></div>
         </div>
-      </Phone>
+      </PhoneShell>
     );
   }
 
   // ── CALC RESULT ──
   if (screen === SCREENS.CALC_RESULT) {
     return (
-      <Phone>
+      <PhoneShell containerRef={containerRef} fadeIn={fadeIn}>
         <div style={{ padding: 28, position: "relative" }}>
           <GlowBG color={C.danger} opacity={0.08} />
           <Tag color={C.danger} bg={C.dangerGlow}>The Numbers Don't Lie</Tag>
@@ -769,7 +764,7 @@ function STAKTPrototype() {
 
           <div style={{ marginTop: 16, paddingBottom: 20 }}><Btn onClick={next}>See The Generational Impact →</Btn></div>
         </div>
-      </Phone>
+      </PhoneShell>
     );
   }
 
@@ -782,7 +777,7 @@ function STAKTPrototype() {
     ];
     const maxGen = genData.g3;
     return (
-      <Phone>
+      <PhoneShell containerRef={containerRef} fadeIn={fadeIn}>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 28, position: "relative" }}>
           <GlowBG color={C.accent} opacity={0.06} />
           <Tag>Generational Wealth</Tag>
@@ -831,7 +826,7 @@ function STAKTPrototype() {
           <div style={{ flex: 1 }} />
           <div style={{ paddingBottom: 20 }}><Btn onClick={next}>Give Us Your Thoughts</Btn></div>
         </div>
-      </Phone>
+      </PhoneShell>
     );
   }
 
@@ -839,7 +834,7 @@ function STAKTPrototype() {
   if (screen === SCREENS.FEEDBACK) {
     const exciteOptions = ["Micro-Stacking", "Stack Circles", "Daily Lessons", "XP & Levelling System", "Achievement Badges", "Reality Check Calculator", "Generational Wealth View"];
     return (
-      <Phone>
+      <PhoneShell containerRef={containerRef} fadeIn={fadeIn}>
         <div style={{ padding: 28, position: "relative" }}>
           <GlowBG color={C.warm} opacity={0.06} />
           <Tag color={C.warm} bg={C.warmGlow}>Your Opinion Matters</Tag>
@@ -896,14 +891,14 @@ function STAKTPrototype() {
             </Btn>
           </div>
         </div>
-      </Phone>
+      </PhoneShell>
     );
   }
 
   // ── THANKS ──
   if (screen === SCREENS.THANKS) {
     return (
-      <Phone>
+      <PhoneShell containerRef={containerRef} fadeIn={fadeIn}>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", padding: 32, textAlign: "center", position: "relative" }}>
           <GlowBG />
           <div style={{ width: 80, height: 80, borderRadius: "50%", background: C.accentGlow, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24, border: `2px solid ${C.accent}` }}>
@@ -919,7 +914,7 @@ function STAKTPrototype() {
             <Btn variant="secondary" onClick={() => transition(SCREENS.SPLASH)}>Start Over</Btn>
           </div>
         </div>
-      </Phone>
+      </PhoneShell>
     );
   }
 
