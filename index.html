@@ -101,6 +101,8 @@ const SCREENS = {
   FEATURE_STACK: "feature_stack",
   FEATURE_CIRCLE: "feature_circle",
   FEATURE_LEARN: "feature_learn",
+  FEATURE_TWO_PATHS: "feature_two_paths",
+  FEATURE_TWO_PATHS_STORY: "feature_two_paths_story",
   GAME_JOURNEY: "game_journey",
   GAME_BADGES: "game_badges",
   CALC_INPUT: "calc_input",
@@ -122,11 +124,13 @@ const FLOW = [
   SCREENS.FEATURE_STACK,
   SCREENS.FEATURE_CIRCLE,
   SCREENS.FEATURE_LEARN,
+  SCREENS.FEATURE_TWO_PATHS,
   SCREENS.GAME_JOURNEY,
   SCREENS.GAME_BADGES,
   SCREENS.CALC_INPUT,
   SCREENS.CALC_RESULT,
   SCREENS.CALC_GENERATIONS,
+  SCREENS.FEATURE_TWO_PATHS_STORY,
   SCREENS.FEEDBACK,
   SCREENS.THANKS,
 ];
@@ -464,6 +468,123 @@ function STAKTPrototype() {
     [SCREENS.FEATURE_LEARN]: { tag: "Education", tagColor: C.warm, tagBg: C.warmGlow, emoji: "🧠", title: "Street Smart Money", subtitle: "No jargon. No lectures.", points: [{ icon: "⚡", text: "2-minute daily lessons designed for real life, not textbooks" }, { icon: "🧪", text: "Interactive scenarios — practice decisions with zero risk" }, { icon: "🗣️", text: "Built by people who built from nothing, for people doing the same" }], glowColor: C.warm },
   };
 
+  // ── TWO PATHS FEATURE — INTRO ──
+  if (screen === SCREENS.FEATURE_TWO_PATHS) {
+    return (
+      <PhoneShell containerRef={containerRef} fadeIn={fadeIn}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 28, position: "relative" }}>
+          <GlowBG color={C.accent} opacity={0.07} />
+          <Tag color={C.accent} bg={C.accentGlow}>Case Study</Tag>
+          <h2 style={{ fontFamily: fontDisplay, fontWeight: 700, fontSize: 30, margin: "16px 0 0", lineHeight: 1.15 }}>Watch the two paths</h2>
+          <p style={{ color: C.textSoft, fontSize: 16, marginTop: 8, lineHeight: 1.55 }}>Two graduates. Same start. 43 years of divergence.</p>
+
+          <div style={{ marginTop: 28, padding: 20, borderRadius: 16, background: `linear-gradient(145deg, ${C.card}, #1a1a1a)`, border: `1px solid ${C.border}` }}>
+            <p style={{ margin: "0 0 14px", fontWeight: 600, fontSize: 13, color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.06em" }}>The Setup</p>
+            <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6, color: C.text }}>Both graduate at 22. Both enter full-time work at £28k. Both have company pensions with matching contributions. Then life happens.</p>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 20 }}>
+            <div style={{ padding: 16, borderRadius: 14, background: C.card, border: `1px solid ${C.border}` }}>
+              <p style={{ margin: "0 0 6px", fontWeight: 600, fontSize: 13, color: C.accent }}>Graduate A</p>
+              <p style={{ margin: 0, fontSize: 11, color: C.textMuted, lineHeight: 1.4 }}>Starts a business at 27. It fails. Years of freelance work and unemployment follow.</p>
+            </div>
+            <div style={{ padding: 16, borderRadius: 14, background: C.card, border: `1px solid ${C.border}` }}>
+              <p style={{ margin: "0 0 6px", fontWeight: 600, fontSize: 13, color: C.warm }}>Graduate B</p>
+              <p style={{ margin: 0, fontSize: 11, color: C.textMuted, lineHeight: 1.4 }}>Stays employed. Gets raises. Stays consistent. Never stops contributing.</p>
+            </div>
+          </div>
+
+          <div style={{ marginTop: 20, padding: 16, borderRadius: 14, background: C.accentGlow, borderLeft: `3px solid ${C.accent}` }}>
+            <p style={{ margin: 0, fontSize: 13, color: C.accent, lineHeight: 1.55, fontWeight: 500 }}>By age 65, the wealth gap is £1.64m. This is what STAKT solves.</p>
+          </div>
+
+          <div style={{ flex: 1 }} />
+          <div style={{ paddingBottom: 20 }}><Btn onClick={next}>Tap Through the Milestones</Btn></div>
+        </div>
+      </PhoneShell>
+    );
+  }
+
+  // ── TWO PATHS FEATURE — STORY (Milestone tapper) ──
+  if (screen === SCREENS.FEATURE_TWO_PATHS_STORY) {
+    const twoPaths = {
+      age22: { label: "Age 22", subtitle: "Both graduate, start full-time work", a: { status: "Graduate A: Full-time employed", salary: "£28,000", pension: "£0", savings: "£0", netWorth: "£0", narrative: "Both enter the same position. Same salary. Same pension setup. Same potential." }, b: { status: "Graduate B: Full-time employed", salary: "£28,000", pension: "£0", savings: "£0", netWorth: "£0", narrative: "Both have identical circumstances. The difference isn't luck — it's consistency." } },
+      age27: { label: "Age 27", subtitle: "Five years in. The paths begin to diverge.", a: { status: "Graduate A: Self-employed (unstable)", salary: "Variable", pension: "£11,500", savings: "£2,800", netWorth: "£14,300", narrative: "Left full-time to start a business. Income is unpredictable. Can't afford regular pension contributions. Savings are depleting." }, b: { status: "Graduate B: Still full-time employed", salary: "£32,200", pension: "£18,500", savings: "£12,000", netWorth: "£30,500", narrative: "Stayed employed. Got raises. Pension compounded quietly. Built savings without thinking about it. The gap is already £16k." } },
+      age30: { label: "Age 30", subtitle: "The business failed. Graduate A is now unemployed.", a: { status: "Graduate A: Unemployed", salary: "£0", pension: "£11,500", savings: "£800", netWorth: "£12,300", narrative: "Business collapsed. No income. Dipped into savings just to survive. Can't think about pensions. The gap is now £46k." }, b: { status: "Graduate B: Promoted, earning more", salary: "£37,800", pension: "£34,200", savings: "£28,000", netWorth: "£62,200", narrative: "Steady progression. Pension is now substantial. Savings are accelerating. Thinking about property. The gap widens to £50k." } },
+      age40: { label: "Age 40", subtitle: "A decade of consistency vs. intermittent work.", a: { status: "Graduate A: Freelance (barely surviving)", salary: "£22,000", pension: "£11,500", savings: "£4,200", netWorth: "£15,700", narrative: "Found freelance gigs but income fluctuates. No pension contributions in 10 years. Savings are minimal. One crisis away from disaster." }, b: { status: "Graduate B: Senior role, mortgage, investments", salary: "£50,400", pension: "£124,000", savings: "£85,000", property: "£180,000", netWorth: "£389,000", narrative: "Consistent career progression. Owns property. Diversified into investments. The gap is now £373k. B is building generational wealth." } },
+      age50: { label: "Age 50", subtitle: "15 years into divergent paths.", a: { status: "Graduate A: Still freelancing, no pension security", salary: "£24,000", pension: "£11,500", savings: "£12,000", netWorth: "£23,500", narrative: "At 50, Graduate A has no meaningful pension. Can't retire. Still freelancing. By age 50, the wealth gap is catastrophic: £622k apart." }, b: { status: "Graduate B: Planning retirement, portfolio growing", salary: "£61,600", pension: "£285,000", savings: "£165,000", property: "£420,000", investments: "£95,000", netWorth: "£645,500", narrative: "Pension pot is now real. Property appreciated. Investments are diversified. At 50, B can actually see retirement. Graduate A will work until 70+." } },
+      age65: { label: "Age 65", subtitle: "Retirement age. The consequence of 43 years of divergence.", a: { status: "Graduate A: Still working. Minimal pension.", salary: "Still working", pension: "£11,500", savings: "£18,000", netWorth: "£29,500", narrative: "At 65, Graduate A has no choice but to keep working. Pension is £11.5k — not enough to live on. Retirement is impossible." }, b: { status: "Graduate B: Retiring comfortably", salary: "Retired", pension: "£425,000", savings: "£245,000", property: "£620,000", investments: "£380,000", netWorth: "£1,670,000", narrative: "At 65, Graduate B retires with over £1.6m in net worth. Pension covers living expenses. Property provides wealth. His children inherit a foundation of wealth." } }
+    };
+
+    const ages = ["age22", "age27", "age30", "age40", "age50", "age65"];
+    const [twoPathsIdx, setTwoPathsIdx] = useState(0);
+    const currentAge = ages[twoPathsIdx];
+    const data = twoPaths[currentAge];
+
+    return (
+      <PhoneShell containerRef={containerRef} fadeIn={fadeIn}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 28, position: "relative" }}>
+          <GlowBG color={C.accent} opacity={0.06} />
+
+          <div style={{ display: "flex", gap: 4, marginBottom: 20, marginTop: 12 }}>
+            {ages.map((age, i) => (<div key={i} style={{ flex: 1, height: 4, borderRadius: 2, background: i <= twoPathsIdx ? C.accent : C.border, transition: "all 0.3s" }} />))}
+          </div>
+
+          <p style={{ margin: "0 0 4px", fontWeight: 600, fontSize: 12, color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{data.label}</p>
+          <h2 style={{ fontFamily: fontDisplay, fontWeight: 700, fontSize: 24, margin: "0 0 8px", lineHeight: 1.15 }}>{data.subtitle}</h2>
+
+          {/* Graduate A */}
+          <div style={{ marginTop: 20, padding: 16, borderRadius: 14, background: C.card, border: `1px solid ${C.border}` }}>
+            <p style={{ margin: "0 0 10px", fontWeight: 600, fontSize: 12, color: C.accent }}>GRADUATE A</p>
+            <p style={{ margin: "0 0 10px", fontSize: 13, fontWeight: 600, color: C.text }}>{data.a.status}</p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 10 }}>
+              {data.a.salary && <div><span style={{ color: C.textMuted, fontSize: 10 }}>Salary</span><p style={{ margin: 0, fontFamily: fontDisplay, fontWeight: 700, fontSize: 14, color: C.accent }}>{data.a.salary}</p></div>}
+              {data.a.pension && <div><span style={{ color: C.textMuted, fontSize: 10 }}>Pension</span><p style={{ margin: 0, fontFamily: fontDisplay, fontWeight: 700, fontSize: 14, color: C.textSoft }}>{data.a.pension}</p></div>}
+            </div>
+            <p style={{ margin: "0 0 8px", fontSize: 10, color: C.textMuted, lineHeight: 1.5 }}>{data.a.narrative}</p>
+            <div style={{ padding: 10, borderRadius: 10, background: C.border, textAlign: "center" }}>
+              <p style={{ margin: 0, fontSize: 11, fontFamily: fontDisplay, fontWeight: 700, color: C.danger }}>Net Worth: {data.a.netWorth}</p>
+            </div>
+          </div>
+
+          {/* Graduate B */}
+          <div style={{ marginTop: 12, padding: 16, borderRadius: 14, background: C.card, border: `1px solid ${C.border}` }}>
+            <p style={{ margin: "0 0 10px", fontWeight: 600, fontSize: 12, color: C.warm }}>GRADUATE B</p>
+            <p style={{ margin: "0 0 10px", fontSize: 13, fontWeight: 600, color: C.text }}>{data.b.status}</p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 10 }}>
+              {data.b.salary && <div><span style={{ color: C.textMuted, fontSize: 10 }}>Salary</span><p style={{ margin: 0, fontFamily: fontDisplay, fontWeight: 700, fontSize: 14, color: C.warm }}>{data.b.salary}</p></div>}
+              {data.b.pension && <div><span style={{ color: C.textMuted, fontSize: 10 }}>Pension</span><p style={{ margin: 0, fontFamily: fontDisplay, fontWeight: 700, fontSize: 14, color: C.textSoft }}>{data.b.pension}</p></div>}
+            </div>
+            <p style={{ margin: "0 0 8px", fontSize: 10, color: C.textMuted, lineHeight: 1.5 }}>{data.b.narrative}</p>
+            <div style={{ padding: 10, borderRadius: 10, background: C.border, textAlign: "center" }}>
+              <p style={{ margin: 0, fontSize: 11, fontFamily: fontDisplay, fontWeight: 700, color: C.success }}>Net Worth: {data.b.netWorth}</p>
+            </div>
+          </div>
+
+          {/* Gap */}
+          {currentAge !== "age22" && (
+            <div style={{ marginTop: 14, padding: 12, borderRadius: 12, background: C.accentGlow, border: `1px solid rgba(255,140,0,0.2)` }}>
+              <p style={{ margin: 0, fontSize: 11, color: C.accent, fontWeight: 600, textAlign: "center" }}>The gap is {(() => {
+                const gaps = { age22: "£0", age27: "£16,200", age30: "£49,900", age40: "£373,300", age50: "£622,000", age65: "£1,640,500" };
+                return gaps[currentAge];
+              })()}</p>
+            </div>
+          )}
+
+          <div style={{ flex: 1 }} />
+          <div style={{ display: "flex", gap: 12, paddingBottom: 20 }}>
+            <Btn variant="secondary" onClick={() => twoPathsIdx > 0 && setTwoPathsIdx(twoPathsIdx - 1)} disabled={twoPathsIdx === 0}>← Back</Btn>
+            {twoPathsIdx < ages.length - 1 ? (
+              <Btn onClick={() => setTwoPathsIdx(twoPathsIdx + 1)}>Next →</Btn>
+            ) : (
+              <Btn onClick={next}>How STAKT Changes This →</Btn>
+            )}
+          </div>
+        </div>
+      </PhoneShell>
+    );
+  }
+
   if ([SCREENS.FEATURE_STACK, SCREENS.FEATURE_CIRCLE, SCREENS.FEATURE_LEARN].includes(screen)) {
     const d = featureScreens[screen];
     const featureIdx = [SCREENS.FEATURE_STACK, SCREENS.FEATURE_CIRCLE, SCREENS.FEATURE_LEARN].indexOf(screen);
@@ -488,7 +609,7 @@ function STAKTPrototype() {
           </div>
           <div style={{ flex: 1 }} />
           <div style={{ paddingBottom: 20 }}>
-            <Btn onClick={next}>{featureIdx === 2 ? "See How You Level Up →" : "Next Feature →"}</Btn>
+            <Btn onClick={next}>{featureIdx === 2 ? "Watch the Two Paths →" : "Next Feature →"}</Btn>
           </div>
         </div>
       </PhoneShell>
