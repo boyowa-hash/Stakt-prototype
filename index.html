@@ -103,6 +103,7 @@ const SCREENS = {
   FEATURE_LEARN: "feature_learn",
   FEATURE_TWO_PATHS: "feature_two_paths",
   FEATURE_TWO_PATHS_STORY: "feature_two_paths_story",
+  SUCCESS_STORIES: "success_stories",
   GAME_JOURNEY: "game_journey",
   GAME_BADGES: "game_badges",
   CALC_INPUT: "calc_input",
@@ -125,12 +126,13 @@ const FLOW = [
   SCREENS.FEATURE_CIRCLE,
   SCREENS.FEATURE_LEARN,
   SCREENS.FEATURE_TWO_PATHS,
+  SCREENS.FEATURE_TWO_PATHS_STORY,
+  SCREENS.SUCCESS_STORIES,
   SCREENS.GAME_JOURNEY,
   SCREENS.GAME_BADGES,
   SCREENS.CALC_INPUT,
   SCREENS.CALC_RESULT,
   SCREENS.CALC_GENERATIONS,
-  SCREENS.FEATURE_TWO_PATHS_STORY,
   SCREENS.FEEDBACK,
   SCREENS.THANKS,
 ];
@@ -240,6 +242,8 @@ function STAKTPrototype() {
   const [submitting, setSubmitting] = useState(false);
   const [calcAge, setCalcAge] = useState(25);
   const [calcMonthly, setCalcMonthly] = useState(100);
+  const [twoPathsIdx, setTwoPathsIdx] = useState(0);
+  const [storyIdx, setStoryIdx] = useState(0);
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -517,7 +521,6 @@ function STAKTPrototype() {
     };
 
     const ages = ["age22", "age27", "age30", "age40", "age50", "age65"];
-    const [twoPathsIdx, setTwoPathsIdx] = useState(0);
     const currentAge = ages[twoPathsIdx];
     const data = twoPaths[currentAge];
 
@@ -610,6 +613,49 @@ function STAKTPrototype() {
           <div style={{ flex: 1 }} />
           <div style={{ paddingBottom: 20 }}>
             <Btn onClick={next}>{featureIdx === 2 ? "Watch the Two Paths →" : "Next Feature →"}</Btn>
+          </div>
+        </div>
+      </PhoneShell>
+    );
+  }
+
+  // ══════════════════════════════════════
+  //  S U C C E S S  S T O R I E S
+  // ══════════════════════════════════════
+
+  if (screen === SCREENS.SUCCESS_STORIES) {
+    const stories = [
+      { name: "Tunde", age: 28, city: "London", emoji: "🎯", title: "From GBP10 to First Property", steps: ["Started STAKT", "3 months in", "6 months in", "Today (Year 2)"], details: ["Invested GBP10 in her first stock. Nervous but determined.", "Joined a Stack Circle. Community accountability changed everything.", "GBP500/month regular investment. Understood compound interest.", "GBP47k invested across stocks, crypto, and property fund. On track for first house in 18 months."], quote: "I did not think I could invest. STAKT made it real." },
+      { name: "Amina", age: 32, city: "Manchester", emoji: "💫", title: "Building Wealth for Her Kids", steps: ["Year 1", "Discovered STAKT", "Invested in education", "Today (Year 3)"], details: ["Had GBP2k in savings. Felt stuck. Traditional banks were not helping.", "Used the calculator. Saw she could build GBP150k by 50 with discipline.", "Learned about pensions, ISAs, and diversification.", "GBP47k portfolio. Junior ISA set up for both kids. Breaking the wealth gap cycle."], quote: "This is not just about me. It is about my kids' future." },
+      { name: "Dev", age: 25, city: "Birmingham", emoji: "🚀", title: "First-Time Investor, No Regrets", steps: ["Before STAKT", "Overcome fear", "Took action", "Today (Year 1.5)"], details: ["Earned GBP28k/year. No savings. No idea where to start investing.", "Street Smart Money lessons demystified stocks and crypto.", "Started with GBP10/month in an ETF. Then added crypto. Then set up pension.", "GBP8k invested. Salary increased to GBP32k. On pace for GBP100k by 30."], quote: "I thought investing was only for rich people. I was wrong." }
+    ];
+    const s = stories[storyIdx];
+    return (
+      <PhoneShell containerRef={containerRef} fadeIn={fadeIn}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 28, position: "relative" }}>
+          <GlowBG color={C.accent} opacity={0.06} />
+          <div style={{ display: "flex", gap: 6, marginBottom: 20 }}>
+            {stories.map((_, i) => (<div key={i} style={{ flex: 1, height: 4, borderRadius: 2, background: i === storyIdx ? C.accent : C.border, cursor: "pointer", transition: "all 0.3s" }} onClick={() => setStoryIdx(i)} />))}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+            <div style={{ fontSize: 48 }}>{s.emoji}</div>
+            <div><h3 style={{ margin: "0 0 2px", fontFamily: fontDisplay, fontWeight: 700, fontSize: 20, color: C.text }}>{s.name}</h3><p style={{ margin: 0, fontSize: 12, color: C.textMuted }}>{s.age}, {s.city}</p></div>
+          </div>
+          <h2 style={{ fontFamily: fontDisplay, fontWeight: 700, fontSize: 24, margin: "0 0 16px", lineHeight: 1.2 }}>{s.title}</h2>
+          <div style={{ marginTop: 20, marginBottom: 20 }}>
+            {s.steps.map((step, i) => (
+              <div key={i} style={{ display: "flex", gap: 12, marginBottom: 14, position: "relative" }}>
+                {i < s.steps.length - 1 && <div style={{ position: "absolute", left: 18, top: 36, width: 2, height: 50, background: C.accent, opacity: 0.3 }} />}
+                <div style={{ width: 36, height: 36, borderRadius: "50%", background: C.accentGlow, border: "2px solid " + C.accent, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: C.accent }}>{i + 1}</div>
+                <div style={{ flex: 1, paddingTop: 4 }}><p style={{ margin: "0 0 4px", fontWeight: 600, fontSize: 13 }}>{step}</p><p style={{ margin: 0, fontSize: 12, color: C.textMuted, lineHeight: 1.5 }}>{s.details[i]}</p></div>
+              </div>
+            ))}
+          </div>
+          <div style={{ padding: 16, borderRadius: 14, background: C.accentGlow, borderLeft: "3px solid " + C.accent, marginTop: 12, marginBottom: 20 }}><p style={{ margin: 0, fontSize: 14, fontStyle: "italic", color: C.accent, lineHeight: 1.55, fontWeight: 500 }}>"{s.quote}"</p></div>
+          <div style={{ flex: 1 }} />
+          <div style={{ display: "flex", gap: 12, paddingTop: 20 }}>
+            <Btn variant="secondary" onClick={() => storyIdx > 0 && setStoryIdx(storyIdx - 1)} disabled={storyIdx === 0}>Back</Btn>
+            {storyIdx < stories.length - 1 ? <Btn onClick={() => setStoryIdx(storyIdx + 1)}>Next</Btn> : <Btn onClick={next}>See Your Potential</Btn>}
           </div>
         </div>
       </PhoneShell>
