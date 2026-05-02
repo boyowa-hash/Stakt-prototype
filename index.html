@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>STAKT — The wealth playbook your parents never had</title>
-<meta name="description" content="Each generation doesn't need to start from zero. Get the free First £10 Guide and join the waitlist for STAKT — the UK challenger banking and investing app for first-generation wealth builders.">
+<meta name="description" content="Each generation doesn't need to start from zero. Free for Starters, premium for Builders, sponsored by employers — STAKT is the UK challenger banking and investing platform built for first-generation wealth builders.">
 <meta property="og:title" content="STAKT — The wealth playbook your parents never had">
-<meta property="og:description" content="Each generation doesn't need to start from zero. Get the free First £10 Guide and join the waitlist.">
+<meta property="og:description" content="Each generation doesn't need to start from zero. Free for Starters, premium for Builders, sponsored by employers.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#0A0A0A">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1276,16 +1276,19 @@ function App() {
             <span style={{fontFamily:"'Outfit',sans-serif",fontWeight:800,fontSize:28,color:"#F5F0EB",letterSpacing:"-0.03em"}}>STAKT</span>
           </div>
           <h1>The wealth playbook<br/>your parents <span style={{color:"#FF8C00"}}>never had.</span></h1>
-          <p className="tagline">Each generation doesn't need to start from zero. STAKT is the UK challenger banking and investing app being built for first-generation wealth builders — entry points from £10, education at the core.</p>
+          <p className="tagline">Each generation doesn't need to start from zero. STAKT is the UK challenger banking and investing platform for first-generation wealth builders — <span style={{color:"#FF8C00",fontWeight:600}}>free for Starters</span>, premium for Builders, sponsored by employers.</p>
           <div className="stat-row">
-            <div className="stat"><div className="stat-num">90%</div><div className="stat-label">UK wealth gap between<br/>White &amp; Black households</div></div>
-            <div className="stat"><div className="stat-num">68%</div><div className="stat-label">of young people have<br/>less than £1k saved</div></div>
+            <div className="stat"><div className="stat-num">8x</div><div className="stat-label">UK wealth gap: £24k<br/>vs £197k household wealth</div></div>
+            <div className="stat"><div className="stat-num">30%</div><div className="stat-label">of UK adults hold<br/>less than £1k saved</div></div>
             <div className="stat"><div className="stat-num">£10</div><div className="stat-label">is all you need<br/>to get started</div></div>
           </div>
           <a href="#" onClick={(e) => { e.preventDefault(); document.getElementById('guide-modal').style.display = 'flex'; }} style={{display:"inline-flex",alignItems:"center",gap:10,marginTop:32,padding:"14px 24px",borderRadius:100,background:"linear-gradient(135deg,#FF8C00,#FF6B00)",color:"#0A0A0A",fontFamily:"'Outfit',sans-serif",fontWeight:700,fontSize:15,textDecoration:"none",boxShadow:"0 8px 32px rgba(255,140,0,0.3)"}}>
             📘 Get the Free First £10 Guide →
           </a>
           <p className="cta-note" style={{marginTop:24}}>Drop your email, get the guide, and join the waitlist for early access. <span>Try the prototype on the right →</span></p>
+          <a href="#" onClick={(e) => { e.preventDefault(); document.getElementById('employer-modal').style.display = 'flex'; }} style={{display:"inline-block",marginTop:14,fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#A89E94",textDecoration:"none",borderBottom:"1px dashed #2A2522",paddingBottom:2}}>
+            Are you an employer? Sponsor financial wellness for your team →
+          </a>
         </div>
         <div className="phone-frame">
           <div className="phone-frame-inner">
@@ -1372,6 +1375,83 @@ function handleGuideSignup(event) {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     document.getElementById('guide-modal').style.display = 'none';
+  }
+});
+</script>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- EMPLOYER ENQUIRY MODAL -->
+<!-- ═══════════════════════════════════════════ -->
+<div id="employer-modal" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);z-index:9999;align-items:center;justify-content:center;padding:20px;animation:modal-fade 0.3s ease;">
+  <div class="modal-card" style="background:linear-gradient(145deg,#141414,#0F0F0F);border:1px solid rgba(255,140,0,0.3);border-radius:24px;padding:40px 36px;max-width:480px;width:100%;position:relative;box-shadow:0 30px 80px rgba(0,0,0,0.5),0 0 60px rgba(255,140,0,0.1);">
+    <button class="modal-close" onclick="document.getElementById('employer-modal').style.display='none'" style="position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:#A89E94;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">×</button>
+
+    <div id="employer-form-view">
+      <div class="modal-eyebrow" style="display:inline-block;padding:4px 12px;border-radius:100px;background:rgba(255,140,0,0.15);color:#FF8C00;font-family:'Outfit',sans-serif;font-weight:600;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:16px;">For Employers</div>
+      <h2 style="font-family:'Outfit',sans-serif;font-weight:800;font-size:26px;color:#F5F0EB;letter-spacing:-0.02em;line-height:1.15;margin-bottom:12px;">Sponsor financial wellness <span style="color:#FF8C00;">for your team.</span></h2>
+      <p style="font-family:'DM Sans',sans-serif;color:#A89E94;font-size:14px;line-height:1.55;margin-bottom:18px;">STAKT is launching an employee-benefits tier — per-seat pricing, FCA Consumer Duty aligned, DEI procurement-ready. Drop your details below and we'll be in touch when our pilot programme opens.</p>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
+        <span style="font-family:'DM Sans',sans-serif;font-size:11px;color:#FF8C00;background:rgba(255,140,0,0.10);padding:6px 12px;border-radius:100px;">DEI procurement-ready</span>
+        <span style="font-family:'DM Sans',sans-serif;font-size:11px;color:#FF8C00;background:rgba(255,140,0,0.10);padding:6px 12px;border-radius:100px;">FCA Consumer Duty aligned</span>
+        <span style="font-family:'DM Sans',sans-serif;font-size:11px;color:#FF8C00;background:rgba(255,140,0,0.10);padding:6px 12px;border-radius:100px;">Per-seat pricing</span>
+      </div>
+
+      <form class="modal-form" onsubmit="handleEmployerEnquiry(event)" style="display:flex;flex-direction:column;gap:12px;">
+        <input type="text" id="employer-fname" placeholder="Your name" required autocomplete="name" style="background:#0A0A0A;border:1px solid #2A2522;border-radius:12px;padding:14px 16px;color:#F5F0EB;font-family:'DM Sans',sans-serif;font-size:15px;outline:none;">
+        <input type="text" id="employer-company" placeholder="Company name" required style="background:#0A0A0A;border:1px solid #2A2522;border-radius:12px;padding:14px 16px;color:#F5F0EB;font-family:'DM Sans',sans-serif;font-size:15px;outline:none;">
+        <input type="email" id="employer-email" placeholder="Work email" required autocomplete="email" style="background:#0A0A0A;border:1px solid #2A2522;border-radius:12px;padding:14px 16px;color:#F5F0EB;font-family:'DM Sans',sans-serif;font-size:15px;outline:none;">
+        <button type="submit" id="employer-submit-btn" style="background:linear-gradient(135deg,#FF8C00,#FF6B00);color:#0A0A0A;border:none;padding:14px 20px;border-radius:100px;font-family:'Outfit',sans-serif;font-weight:700;font-size:15px;cursor:pointer;margin-top:4px;">Request a Demo →</button>
+      </form>
+
+      <p class="privacy-note" style="font-family:'DM Sans',sans-serif;font-size:11px;color:#6B6360;text-align:center;margin-top:14px;line-height:1.55;">No spam. Used only to contact you about STAKT for Employers.</p>
+    </div>
+
+    <div class="modal-success" id="employer-success-view" style="display:none;text-align:center;padding:12px 0;">
+      <div class="check" style="width:56px;height:56px;margin:0 auto 16px;border-radius:50%;background:rgba(127,176,105,0.15);border:2px solid #7FB069;display:flex;align-items:center;justify-content:center;color:#7FB069;font-size:26px;">✓</div>
+      <h3 style="font-family:'Outfit',sans-serif;font-weight:700;font-size:20px;color:#F5F0EB;margin-bottom:8px;">Thanks — we'll be in touch.</h3>
+      <p style="font-family:'DM Sans',sans-serif;color:#A89E94;font-size:14px;line-height:1.55;">We're scoping pilot partners for the employee-benefits tier and will reach out shortly with next steps.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+function handleEmployerEnquiry(event) {
+  event.preventDefault();
+  const fname = document.getElementById('employer-fname').value.trim();
+  const company = document.getElementById('employer-company').value.trim();
+  const email = document.getElementById('employer-email').value.trim();
+  const btn = document.getElementById('employer-submit-btn');
+
+  if (!email || !email.includes('@') || !fname || !company) return;
+
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+
+  try {
+    const MAILCHIMP_URL = "https://money.us5.list-manage.com/subscribe/post?u=e2124e03a0e42bfe33734a282&id=e2d5904335&f_id=0010f8e9f0";
+    const url = MAILCHIMP_URL.replace("/post?", "/post-json?")
+      + "&EMAIL=" + encodeURIComponent(email)
+      + "&FNAME=" + encodeURIComponent(fname)
+      + "&COMPANY=" + encodeURIComponent(company)
+      + "&SOURCE=" + encodeURIComponent("employer_enquiry")
+      + "&c=__mcEmployerCb" + Date.now();
+    const s = document.createElement("script");
+    s.src = url;
+    document.body.appendChild(s);
+    setTimeout(() => { try { s.remove(); } catch(e){} }, 5000);
+  } catch(e) { console.error("Mailchimp error:", e); }
+
+  setTimeout(() => {
+    document.getElementById('employer-form-view').style.display = 'none';
+    document.getElementById('employer-success-view').style.display = 'block';
+  }, 800);
+}
+
+// Close employer modal on Escape key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    document.getElementById('employer-modal').style.display = 'none';
   }
 });
 </script>
